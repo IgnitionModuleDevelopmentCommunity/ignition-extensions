@@ -3,6 +3,11 @@
 A (hopefully) community driven Ignition module project to house utilities that are often useful, but just too niche (or
 have enough footguns) to go into Ignition itself.
 
+# Usage
+
+Simply download the .modl file from the [latest release](https://github.com/IgnitionModuleDevelopmentCommunity/ignition-extensions/releases) and install it to your gateway.
+Note: At present, the module is not signed, so you will need to allow unsigned modules to install.
+
 # Building
 
 This project uses Gradle, and the Gradle Module Plugin. Use `./gradlew build` to assemble artifacts,

@@ -5,6 +5,7 @@ import io.kotest.core.listeners.BeforeEachListener
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.test.TestCase
 import io.kotest.matchers.booleans.shouldBeTrue
+import org.intellij.lang.annotations.Language
 import org.python.core.CompileMode
 import org.python.core.CompilerFlags
 import org.python.core.Py
@@ -15,6 +16,7 @@ import org.python.core.PyObject
 import org.python.core.PyStringMap
 import org.python.core.PyType
 
+@Suppress("PyInterpreter")
 abstract class JythonTest(init: (globals: PyStringMap) -> Unit) : FunSpec() {
     protected var globals: PyStringMap = PyStringMap()
 
@@ -29,17 +31,17 @@ abstract class JythonTest(init: (globals: PyStringMap) -> Unit) : FunSpec() {
         )
     }
 
-    protected inline fun <reified T> eval(script: String): T {
+    protected inline fun <reified T> eval(@Language("python") script: String): T {
         exec("$RESULT = $script")
-        return globals[RESULT]!!
+        return globals[RESULT]
     }
 
-    protected fun exec(script: String?) {
+    protected fun exec(@Language("python") script: String?) {
         val compiledCall = compile(script)
         Py.runCode(compiledCall, null, globals)
     }
 
-    private fun compile(script: String?): PyCode {
+    private fun compile(@Language("python") script: String?): PyCode {
         return Py.compile_flags(
             script,
             "<test>",
@@ -48,11 +50,11 @@ abstract class JythonTest(init: (globals: PyStringMap) -> Unit) : FunSpec() {
         )
     }
 
-    fun assertThrowsPyException(type: PyObject, executable: () -> Unit) {
+    fun shouldThrowPyException(type: PyObject, case: () -> Unit) {
         require(type is PyType)
         require(type.isSubType(PyBaseException.TYPE))
         try {
-            executable()
+            case()
         } catch (exception: PyException) {
             exception.match(type).shouldBeTrue()
         }
@@ -65,8 +67,9 @@ abstract class JythonTest(init: (globals: PyStringMap) -> Unit) : FunSpec() {
             Py.setSystemState(Py.defaultSystemState)
         }
 
-        inline operator fun <reified T> PyStringMap.get(variable: String): T? {
-            return TypeUtilities.pyToJava(this[Py.newStringOrUnicode(variable)]) as T?
+        inline operator fun <reified T> PyStringMap.get(variable: String): T {
+            val value = this[Py.newStringOrUnicode(variable)]
+            return TypeUtilities.pyToJava(value) as T
         }
 
         operator fun PyStringMap.set(key: String, value: Any?) {

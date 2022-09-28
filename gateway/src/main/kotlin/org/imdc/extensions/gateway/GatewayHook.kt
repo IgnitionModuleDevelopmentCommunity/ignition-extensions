@@ -28,7 +28,7 @@ class GatewayHook : AbstractGatewayModuleHook() {
 
     override fun initializeScriptManager(manager: ScriptManager) {
         manager.addScriptModule("system.dataset", DatasetExtensions, PropertiesFileDocProvider())
-        manager.addScriptModule("system.utils", UtilitiesExtensions(context), PropertiesFileDocProvider())
+        manager.addScriptModule("system.util", UtilitiesExtensions(context), PropertiesFileDocProvider())
     }
 
     override fun isFreeModule(): Boolean = true

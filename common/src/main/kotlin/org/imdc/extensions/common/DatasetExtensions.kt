@@ -8,7 +8,6 @@ import com.inductiveautomation.ignition.common.script.hints.ScriptFunction
 import com.inductiveautomation.ignition.common.util.DatasetBuilder
 import org.python.core.Py
 import org.python.core.PyFunction
-import org.python.core.PyList
 import org.python.core.PyObject
 import kotlin.math.max
 
@@ -76,12 +75,25 @@ object DatasetExtensions {
             .colTypes(dataset.columnTypes)
 
         for (row in dataset.rowIndices) {
-            val columnValues = Array(dataset.columnCount) { col ->
-                dataset[row, col]
+            val filterArgs = Array(dataset.columnCount + 1) { col ->
+                if (col == 0) {
+                    Py.newInteger(row)
+                } else {
+                    Py.java2py(dataset[row, col - 1])
+                }
             }
-            val filterArgs = arrayOf(Py.newInteger(row), PyList(columnValues.toList()))
-            val returnValue = filter.__call__(filterArgs).__nonzero__()
+            val filterKeywords = Array(dataset.columnCount + 1) { col ->
+                if (col == 0) {
+                    "row"
+                } else {
+                    dataset.getColumnName(col - 1)
+                }
+            }
+            val returnValue = filter.__call__(filterArgs, filterKeywords).__nonzero__()
             if (returnValue) {
+                val columnValues = Array(dataset.columnCount) { col ->
+                    dataset[row, col]
+                }
                 builder.addRow(*columnValues)
             }
         }

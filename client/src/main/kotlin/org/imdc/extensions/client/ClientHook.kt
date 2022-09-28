@@ -25,6 +25,6 @@ class ClientHook : AbstractClientModuleHook() {
 
     override fun initializeScriptManager(manager: ScriptManager) {
         manager.addScriptModule("system.dataset", DatasetExtensions, PropertiesFileDocProvider())
-        manager.addScriptModule("system.utils", UtilitiesExtensions(context), PropertiesFileDocProvider())
+        manager.addScriptModule("system.util", UtilitiesExtensions(context), PropertiesFileDocProvider())
     }
 }
