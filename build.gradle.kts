@@ -13,7 +13,7 @@ subprojects {
 ignitionModule {
     name.set("Ignition Extensions")
     fileName.set("Ignition-Extensions.modl")
-    id.set("io.github.paulgriffith.extensions.IgnitionExtensions")
+    id.set("org.imdc.extensions.IgnitionExtensions")
     moduleVersion.set("${project.version}")
 
     moduleDescription.set("Useful but niche extensions to Ignition for power users")
@@ -28,17 +28,11 @@ ignitionModule {
         ),
     )
 
-    moduleDependencies.set(
-        mapOf(
-            "com.inductiveautomation.perspective" to "G",
-        ),
-    )
-
     hooks.putAll(
         mapOf(
-            "io.github.paulgriffith.extensions.gateway.GatewayHook" to "G",
-            "io.github.paulgriffith.extensions.designer.DesignerHook" to "D",
-            "io.github.paulgriffith.extensions.client.ClientHook" to "C",
+            "org.imdc.extensions.gateway.GatewayHook" to "G",
+            "org.imdc.extensions.designer.DesignerHook" to "D",
+            "org.imdc.extensions.client.ClientHook" to "C",
         ),
     )
 
