@@ -49,6 +49,30 @@ class DatasetUtilsTests : JythonTest(
             }
         }
 
+        context("Filter tests") {
+            test("Constant filter") {
+                val result: Dataset = eval("utils.filter(dataset, lambda row, values: False)")
+                result.columnNames shouldBe listOf("a", "b", "c")
+                result.columnTypes shouldBe listOf(
+                    Int::class.javaObjectType,
+                    Double::class.javaObjectType,
+                    String::class.java,
+                )
+                result.rowCount shouldBe 0
+            }
+
+            test("Conditional filter") {
+                val result: Dataset = eval("utils.filter(dataset, lambda row, values: row >= 1)")
+                result.columnNames shouldBe listOf("a", "b", "c")
+                result.columnTypes shouldBe listOf(
+                    Int::class.javaObjectType,
+                    Double::class.javaObjectType,
+                    String::class.java,
+                )
+                result.rowCount shouldBe 1
+            }
+        }
+
         context("Print tests") {
             test("Basic test") {
                 with(DatasetExtensions) {

@@ -8,6 +8,7 @@ import com.inductiveautomation.ignition.common.script.hints.ScriptFunction
 import com.inductiveautomation.ignition.common.util.DatasetBuilder
 import org.python.core.Py
 import org.python.core.PyFunction
+import org.python.core.PyList
 import org.python.core.PyObject
 import kotlin.math.max
 
@@ -36,7 +37,10 @@ object DatasetExtensions {
             List(dataset.columnCount) { Any::class.java }
         }
 
-        val builder = DatasetBuilder.newBuilder().colNames(dataset.columnNames).colTypes(columnTypes)
+        val builder = DatasetBuilder.newBuilder()
+            .colNames(dataset.columnNames)
+            .colTypes(columnTypes)
+
         for (row in dataset.rowIndices) {
             val columnValues = Array<PyObject>(dataset.columnCount) { col ->
                 Py.java2py(dataset[row, col])
@@ -45,6 +49,41 @@ object DatasetExtensions {
 
             val newValues = returnValue.asIterable().map(TypeUtilities::pyToJava).toTypedArray()
             builder.addRow(*newValues)
+        }
+
+        return builder.build()
+    }
+
+    @Suppress("unused")
+    @ScriptFunction(docBundlePrefix = "DatasetExtensions")
+    @KeywordArgs(
+        names = ["dataset", "filter"],
+        types = [Dataset::class, PyFunction::class],
+    )
+    fun filter(args: Array<PyObject>, keywords: Array<String>): Dataset? {
+        val parsedArgs = PyArgParser.parseArgs(
+            args,
+            keywords,
+            arrayOf("dataset", "filter"),
+            arrayOf(Dataset::class.java, PyObject::class.java),
+            "filter",
+        )
+        val dataset = parsedArgs.requirePyObject("dataset").toJava<Dataset>()
+        val filter = parsedArgs.requirePyObject("filter")
+
+        val builder = DatasetBuilder.newBuilder()
+            .colNames(dataset.columnNames)
+            .colTypes(dataset.columnTypes)
+
+        for (row in dataset.rowIndices) {
+            val columnValues = Array(dataset.columnCount) { col ->
+                dataset[row, col]
+            }
+            val filterArgs = arrayOf(Py.newInteger(row), PyList(columnValues.toList()))
+            val returnValue = filter.__call__(filterArgs).__nonzero__()
+            if (returnValue) {
+                builder.addRow(*columnValues)
+            }
         }
 
         return builder.build()
