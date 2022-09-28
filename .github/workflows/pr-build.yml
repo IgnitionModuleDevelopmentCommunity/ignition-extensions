@@ -1,7 +1,7 @@
 name: Run Gradle on PRs
 on: pull_request
 jobs:
-  gradle:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -12,5 +12,25 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+      - name: Populate secrets
+        env:
+          CERT_BASE64: ${{ secrets.CERT_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          echo $CERT_BASE64 | base64 --decode > cert.p7b
+          echo $KEYSTORE_BASE64 | base64 --decode > keystore.pfx
       - name: Execute Gradle build
-        run: ./gradlew build zipModule
+        run: >
+          ./gradlew build signModule 
+            --certFile=cert.p7b
+            --certPassword="$CERT_PASSWORD"
+            --keystoreFile=keystore.pfx
+            --keystorePassword="$KEYSTORE_PASSWORD"
+            --certAlias=ignition-extensions
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: signed
+          path: build/Ignition-Extensions.modl
