@@ -24,9 +24,9 @@ jobs:
           build
           signModule 
           --certFile=cert.p7b
-          --certPassword="${{ secrets.CERT_PWD }}"
+          --certPassword="${{ secrets.CERT_PASSWORD }}"
           --keystoreFile=keystore.pfx
-          --keystorePassword="${{ secrets.KEYSTORE_PWD }}"
+          --keystorePassword="${{ secrets.KEYSTORE_PASSWORD }}"
           --certAlias=ignition-extensions
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
