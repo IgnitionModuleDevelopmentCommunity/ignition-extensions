@@ -12,16 +12,17 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-      - name: Populate secrets
+      - name: Decode signing secret to file
         env:
           CERT_BASE64: ${{ secrets.CERT_BASE64 }}
-          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
           echo $CERT_BASE64 | base64 --decode > cert.p7b
           echo $KEYSTORE_BASE64 | base64 --decode > keystore.pfx
       - name: Execute Gradle build
+        env:
+          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: >
           ./gradlew build signModule 
           --certFile=cert.p7b
