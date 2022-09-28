@@ -13,25 +13,36 @@ jobs:
           java-version: 11
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
+      - name: Decode signing secret to file
+        run: |
+          echo ${{ secrets.CERT_BASE64 }} | base64 --decode > cert.p7b
+          echo ${{ secrets.KEYSTORE_BASE64 }} | base64 --decode > keystore.pfx
       - name: Execute Gradle build
-        run: ./gradlew -Pversion=${{github.ref_name}} build zipModule
+        run: >
+          ./gradlew
+          -Pversion=${{github.ref_name}}
+          build
+          signModule 
+          --certFile=cert.p7b
+          --certPassword="${{ secrets.CERT_PWD }}"
+          --keystoreFile=keystore.pfx
+          --keystorePassword="${{ secrets.KEYSTORE_PWD }}"
+          --certAlias=ignition-extensions
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: unsigned
-          path: build/*.unsigned.modl
+          name: signed
+          path: build/Ignition-Extensions.modl
   release:
     runs-on: ubuntu-latest
     needs: [build]
     steps:
       - uses: actions/checkout@v2
-      - name: Download Unsigned Module
+      - name: Download Signed Module
         uses: actions/download-artifact@v3
         with:
-          name: unsigned
+          name: signed
           path: artifacts
-      - name: Display structure of downloaded files
-        run: ls -R
       - name: Create Release
         uses: marvinpinto/action-automatic-releases@latest
         with:

@@ -13,24 +13,19 @@ jobs:
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
       - name: Decode signing secret to file
-        env:
-          CERT_BASE64: ${{ secrets.CERT_BASE64 }}
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
-          echo $CERT_BASE64 | base64 --decode > cert.p7b
-          echo $KEYSTORE_BASE64 | base64 --decode > keystore.pfx
-      - name: Display structure of downloaded files
-        run: ls -R
+          echo ${{ secrets.CERT_BASE64 }} | base64 --decode > cert.p7b
+          echo ${{ secrets.KEYSTORE_BASE64 }} | base64 --decode > keystore.pfx
       - name: Execute Gradle build
-        env:
-          CERT_PWD: ${{ secrets.CERT_PASSWORD }}
-          KEYSTORE_PWD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: >
-          ./gradlew build signModule 
+          ./gradlew
+          -Pversion=${{github.ref_name}}
+          build
+          signModule
           --certFile=cert.p7b
-          --certPassword="${{ env.CERT_PWD }}"
+          --certPassword="${{ secrets.CERT_PWD }}"
           --keystoreFile=keystore.pfx
-          --keystorePassword="${{ env.KEYSTORE_PWD }}"
+          --keystorePassword="${{ secrets.KEYSTORE_PWD }}"
           --certAlias=ignition-extensions
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
