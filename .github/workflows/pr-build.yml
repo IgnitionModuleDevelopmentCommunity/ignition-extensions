@@ -22,15 +22,15 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R
       - name: Execute Gradle build
-#        env:
-#          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
-#          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        env:
+          CERT_PWD: ${{ secrets.CERT_PASSWORD }}
+          KEYSTORE_PWD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: >
           ./gradlew build signModule 
           --certFile=cert.p7b
-          --certPassword="${{secrets.CERT_PASSWORD}}"
+          --certPassword="${{ env.CERT_PWD }}"
           --keystoreFile=keystore.pfx
-          --keystorePassword="${{secrets.KEYSTORE_PASSWORD}}"
+          --keystorePassword="${{ env.KEYSTORE_PWD }}"
           --certAlias=ignition-extensions
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
