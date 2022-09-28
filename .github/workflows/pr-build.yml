@@ -20,15 +20,15 @@ jobs:
           echo $CERT_BASE64 | base64 --decode > cert.p7b
           echo $KEYSTORE_BASE64 | base64 --decode > keystore.pfx
       - name: Execute Gradle build
-        env:
-          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+#        env:
+#          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
+#          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: >
           ./gradlew build signModule 
           --certFile=cert.p7b
-          --certPassword=$CERT_PASSWORD
+          --certPassword=${{ secrets.CERT_PASSWORD }}
           --keystoreFile=keystore.pfx
-          --keystorePassword=$KEYSTORE_PASSWORD
+          --keystorePassword=${{ secrets.KEYSTORE_PASSWORD }}
           --certAlias=ignition-extensions
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
