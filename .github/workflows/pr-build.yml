@@ -24,11 +24,11 @@ jobs:
       - name: Execute Gradle build
         run: >
           ./gradlew build signModule 
-            --certFile=cert.p7b
-            --certPassword="$CERT_PASSWORD"
-            --keystoreFile=keystore.pfx
-            --keystorePassword="$KEYSTORE_PASSWORD"
-            --certAlias=ignition-extensions
+          --certFile=cert.p7b
+          --certPassword="$CERT_PASSWORD"
+          --keystoreFile=keystore.pfx
+          --keystorePassword="$KEYSTORE_PASSWORD"
+          --certAlias=ignition-extensions
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
