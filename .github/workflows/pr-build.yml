@@ -21,6 +21,7 @@ jobs:
           ./gradlew
           -Pversion=${{github.ref_name}}
           build
+          zipModule
           signModule
           --certFile=cert.p7b
           --certPassword="${{ secrets.CERT_PASSWORD }}"
