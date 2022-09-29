@@ -19,7 +19,6 @@ jobs:
       - name: Execute Gradle build
         run: >
           ./gradlew
-          -Pversion=${{github.ref_name}}
           build
           zipModule
           signModule
