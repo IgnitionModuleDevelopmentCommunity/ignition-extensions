@@ -12,23 +12,5 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-      - name: Decode signing secret to file
-        run: |
-          echo ${{ secrets.CERT_BASE64 }} | base64 --decode > cert.p7b
-          echo ${{ secrets.KEYSTORE_BASE64 }} | base64 --decode > keystore.pfx
       - name: Execute Gradle build
-        run: >
-          ./gradlew
-          build
-          zipModule
-          signModule
-          --certFile=cert.p7b
-          --certPassword="${{ secrets.CERT_PASSWORD }}"
-          --keystoreFile=keystore.pfx
-          --keystorePassword="${{ secrets.KEYSTORE_PASSWORD }}"
-          --certAlias=ignition-extensions
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: signed
-          path: build/Ignition-Extensions.modl
+        run: ./gradlew build
