@@ -21,6 +21,7 @@ jobs:
         run: >
           ./gradlew
           -Pversion=${{github.ref_name}}
+          -PsignModule=true
           build
           signModule 
           --certFile=cert.p7b

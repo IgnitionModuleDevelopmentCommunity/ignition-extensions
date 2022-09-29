@@ -36,5 +36,5 @@ ignitionModule {
         ),
     )
 
-    skipModlSigning.set(!System.getenv("CI").toBoolean())
+    skipModlSigning.set(!findProperty("signModule").toString().toBoolean())
 }
