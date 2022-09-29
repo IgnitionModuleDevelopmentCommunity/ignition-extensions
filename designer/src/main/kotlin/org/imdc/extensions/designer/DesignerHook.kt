@@ -3,10 +3,10 @@ package org.imdc.extensions.designer
 import com.inductiveautomation.ignition.common.BundleUtil
 import com.inductiveautomation.ignition.common.licensing.LicenseState
 import com.inductiveautomation.ignition.common.script.ScriptManager
-import com.inductiveautomation.ignition.common.script.hints.PropertiesFileDocProvider
 import com.inductiveautomation.ignition.designer.model.AbstractDesignerModuleHook
 import com.inductiveautomation.ignition.designer.model.DesignerContext
 import org.imdc.extensions.common.DatasetExtensions
+import org.imdc.extensions.common.ExtensionDocProvider
 import org.imdc.extensions.common.UtilitiesExtensions
 import org.imdc.extensions.common.addPropertyBundle
 
@@ -20,11 +20,15 @@ class DesignerHook : AbstractDesignerModuleHook() {
         BundleUtil.get().apply {
             addPropertyBundle<DatasetExtensions>()
             addPropertyBundle<UtilitiesExtensions>()
+            addPropertyBundle<DesignerProjectExtensions>()
         }
     }
 
     override fun initializeScriptManager(manager: ScriptManager) {
-        manager.addScriptModule("system.dataset", DatasetExtensions, PropertiesFileDocProvider())
-        manager.addScriptModule("system.util", UtilitiesExtensions(context), PropertiesFileDocProvider())
+        manager.apply {
+            addScriptModule("system.dataset", DatasetExtensions, ExtensionDocProvider)
+            addScriptModule("system.util", UtilitiesExtensions(context), ExtensionDocProvider)
+            addScriptModule("system.project", DesignerProjectExtensions(context), ExtensionDocProvider)
+        }
     }
 }

@@ -22,6 +22,7 @@ public class UtilitiesExtensions {
     }
 
     @ScriptFunction(docBundlePrefix = "UtilitiesExtensions")
+    @UnsafeExtension
     public CommonContext getContext() {
         return context;
     }

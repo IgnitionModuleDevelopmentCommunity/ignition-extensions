@@ -4,9 +4,9 @@ import com.inductiveautomation.ignition.client.model.ClientContext
 import com.inductiveautomation.ignition.common.BundleUtil
 import com.inductiveautomation.ignition.common.licensing.LicenseState
 import com.inductiveautomation.ignition.common.script.ScriptManager
-import com.inductiveautomation.ignition.common.script.hints.PropertiesFileDocProvider
 import com.inductiveautomation.vision.api.client.AbstractClientModuleHook
 import org.imdc.extensions.common.DatasetExtensions
+import org.imdc.extensions.common.ExtensionDocProvider
 import org.imdc.extensions.common.UtilitiesExtensions
 import org.imdc.extensions.common.addPropertyBundle
 
@@ -20,11 +20,15 @@ class ClientHook : AbstractClientModuleHook() {
         BundleUtil.get().apply {
             addPropertyBundle<DatasetExtensions>()
             addPropertyBundle<UtilitiesExtensions>()
+            addPropertyBundle<ClientProjectExtensions>()
         }
     }
 
     override fun initializeScriptManager(manager: ScriptManager) {
-        manager.addScriptModule("system.dataset", DatasetExtensions, PropertiesFileDocProvider())
-        manager.addScriptModule("system.util", UtilitiesExtensions(context), PropertiesFileDocProvider())
+        manager.apply {
+            addScriptModule("system.dataset", DatasetExtensions, ExtensionDocProvider)
+            addScriptModule("system.util", UtilitiesExtensions(context), ExtensionDocProvider)
+            addScriptModule("system.project", ClientProjectExtensions(context), ExtensionDocProvider)
+        }
     }
 }
