@@ -24,7 +24,7 @@ object ExtensionDocProvider : ScriptFunctionDocProvider by propertiesFileDocProv
                 if (unsafeAnnotation.note.isNotEmpty()) {
                     append("<br>").append(unsafeAnnotation.note)
                 }
-                append("</b><br>")
+                append("</b><br><br>")
             }
             append(methodDescription.orEmpty())
         }

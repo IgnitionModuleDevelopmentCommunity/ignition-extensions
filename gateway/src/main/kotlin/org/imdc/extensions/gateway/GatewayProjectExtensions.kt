@@ -2,6 +2,7 @@ package org.imdc.extensions.gateway
 
 import com.inductiveautomation.ignition.common.project.RuntimeProject
 import com.inductiveautomation.ignition.common.script.ScriptContext
+import com.inductiveautomation.ignition.common.script.hints.ScriptArg
 import com.inductiveautomation.ignition.common.script.hints.ScriptFunction
 import com.inductiveautomation.ignition.gateway.model.GatewayContext
 import org.imdc.extensions.common.ProjectExtensions
@@ -11,12 +12,13 @@ class GatewayProjectExtensions(private val context: GatewayContext) : ProjectExt
     @ScriptFunction(docBundlePrefix = "GatewayProjectExtensions")
     override fun getProject(): RuntimeProject {
         val defaultProject = ScriptContext.defaultProject() ?: throw Py.EnvironmentError("No context project populated")
-        return getProject(defaultProject)
-            ?: throw Py.ValueError("Unable to find a default project with name $defaultProject")
+        return requireNotNull(getProject(defaultProject)) { "No such project $defaultProject" }
     }
 
     @ScriptFunction(docBundlePrefix = "GatewayProjectExtensions")
-    fun getProject(project: String): RuntimeProject? {
+    fun getProject(
+        @ScriptArg("project", optional = true) project: String,
+    ): RuntimeProject? {
         return context.projectManager.getProject(project).orElse(null)
     }
 }
