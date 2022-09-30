@@ -4,19 +4,20 @@ import com.inductiveautomation.ignition.common.BundleUtil
 import com.inductiveautomation.ignition.common.Dataset
 import org.python.core.Py
 import org.python.core.PyObject
+import java.lang.reflect.Method
 
 class PyObjectAppendable(target: PyObject) : Appendable {
     private val writeMethod = target.__getattr__("write")
 
-    override fun append(csq: CharSequence) = this.apply {
+    override fun append(csq: CharSequence): Appendable = this.apply {
         writeMethod.__call__(Py.newStringOrUnicode(csq.toString()))
     }
 
-    override fun append(csq: CharSequence, start: Int, end: Int) = this.apply {
+    override fun append(csq: CharSequence, start: Int, end: Int): Appendable = this.apply {
         append(csq.subSequence(start, end))
     }
 
-    override fun append(c: Char) = this.apply {
+    override fun append(c: Char): Appendable = this.apply {
         append(c.toString())
     }
 }
@@ -47,4 +48,8 @@ inline fun <reified T> BundleUtil.addPropertyBundle() {
         T::class.java.classLoader,
         T::class.java.name.replace('.', '/'),
     )
+}
+
+inline fun <reified T : Annotation> Method.getAnnotation(): T? {
+    return getAnnotation(T::class.java)
 }

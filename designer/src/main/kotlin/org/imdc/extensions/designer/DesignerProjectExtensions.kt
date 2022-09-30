@@ -10,6 +10,7 @@ import org.imdc.extensions.common.UnsafeExtension
 
 class DesignerProjectExtensions(private val context: DesignerContext) : ProjectExtensions {
     @ScriptFunction(docBundlePrefix = "DesignerProjectExtensions")
+    @UnsafeExtension
     override fun getProject(): DesignableProject {
         return requireNotNull(context.project)
     }
