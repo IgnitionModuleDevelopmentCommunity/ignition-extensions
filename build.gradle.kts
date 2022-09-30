@@ -38,3 +38,7 @@ ignitionModule {
 
     skipModlSigning.set(!findProperty("signModule").toString().toBoolean())
 }
+
+tasks.deployModl {
+    hostGateway.set("http://localhost:18088")
+}
