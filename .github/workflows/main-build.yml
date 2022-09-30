@@ -2,7 +2,7 @@ name: Publish new version upon tag commit
 on:
   push:
     tags:
-      - '*'
+      - '[0-9].[0-9].[0-9]'
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -29,24 +29,9 @@ jobs:
           --keystoreFile=keystore.pfx
           --keystorePassword="${{ secrets.KEYSTORE_PASSWORD }}"
           --certAlias=ignition-extensions
-      - name: Upload signed module
-        uses: actions/upload-artifact@v3
-        with:
-          name: signed
-          path: build/Ignition-Extensions.modl
-  release:
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
-      - uses: actions/checkout@v2
-      - name: Download signed module
-        uses: actions/download-artifact@v3
-        with:
-          name: signed
-          path: artifacts
       - name: Create release
         uses: marvinpinto/action-automatic-releases@latest
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: false
-          files: artifacts/*
+          files: build/Ignition-Extensions.modl
