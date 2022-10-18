@@ -1,6 +1,7 @@
 package org.imdc.extensions.gateway
 
 import com.inductiveautomation.ignition.common.BundleUtil
+import com.inductiveautomation.ignition.common.expressions.ExpressionFunctionManager
 import com.inductiveautomation.ignition.common.licensing.LicenseState
 import com.inductiveautomation.ignition.common.script.ScriptManager
 import com.inductiveautomation.ignition.gateway.model.AbstractGatewayModuleHook
@@ -9,6 +10,7 @@ import org.imdc.extensions.common.DatasetExtensions
 import org.imdc.extensions.common.ExtensionDocProvider
 import org.imdc.extensions.common.UtilitiesExtensions
 import org.imdc.extensions.common.addPropertyBundle
+import org.imdc.extensions.common.expressions.IsAvailableFunction
 
 @Suppress("unused")
 class GatewayHook : AbstractGatewayModuleHook() {
@@ -32,6 +34,16 @@ class GatewayHook : AbstractGatewayModuleHook() {
             addScriptModule("system.dataset", DatasetExtensions, ExtensionDocProvider)
             addScriptModule("system.util", UtilitiesExtensions(context), ExtensionDocProvider)
             addScriptModule("system.project", GatewayProjectExtensions(context), ExtensionDocProvider)
+        }
+    }
+
+    override fun configureFunctionFactory(factory: ExpressionFunctionManager) {
+        factory.apply {
+            addFunction(
+                IsAvailableFunction.NAME,
+                IsAvailableFunction.CATEGORY,
+                IsAvailableFunction(),
+            )
         }
     }
 

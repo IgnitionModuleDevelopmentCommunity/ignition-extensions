@@ -1,6 +1,7 @@
 package org.imdc.extensions.designer
 
 import com.inductiveautomation.ignition.common.BundleUtil
+import com.inductiveautomation.ignition.common.expressions.ExpressionFunctionManager
 import com.inductiveautomation.ignition.common.licensing.LicenseState
 import com.inductiveautomation.ignition.common.script.ScriptManager
 import com.inductiveautomation.ignition.designer.model.AbstractDesignerModuleHook
@@ -9,6 +10,7 @@ import org.imdc.extensions.common.DatasetExtensions
 import org.imdc.extensions.common.ExtensionDocProvider
 import org.imdc.extensions.common.UtilitiesExtensions
 import org.imdc.extensions.common.addPropertyBundle
+import org.imdc.extensions.common.expressions.IsAvailableFunction
 
 @Suppress("unused")
 class DesignerHook : AbstractDesignerModuleHook() {
@@ -29,6 +31,16 @@ class DesignerHook : AbstractDesignerModuleHook() {
             addScriptModule("system.dataset", DatasetExtensions, ExtensionDocProvider)
             addScriptModule("system.util", UtilitiesExtensions(context), ExtensionDocProvider)
             addScriptModule("system.project", DesignerProjectExtensions(context), ExtensionDocProvider)
+        }
+    }
+
+    override fun configureFunctionFactory(factory: ExpressionFunctionManager) {
+        factory.apply {
+            addFunction(
+                IsAvailableFunction.NAME,
+                IsAvailableFunction.CATEGORY,
+                IsAvailableFunction(),
+            )
         }
     }
 }
