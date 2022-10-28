@@ -6,7 +6,10 @@ import com.inductiveautomation.ignition.common.script.PyArgParser
 import com.inductiveautomation.ignition.common.script.builtin.KeywordArgs
 import com.inductiveautomation.ignition.common.script.hints.ScriptFunction
 import com.inductiveautomation.ignition.common.util.DatasetBuilder
-import org.apache.poi.ss.usermodel.CellType.*
+import org.apache.poi.ss.usermodel.CellType.BOOLEAN
+import org.apache.poi.ss.usermodel.CellType.FORMULA
+import org.apache.poi.ss.usermodel.CellType.NUMERIC
+import org.apache.poi.ss.usermodel.CellType.STRING
 import org.apache.poi.ss.usermodel.DateUtil
 import org.apache.poi.ss.usermodel.WorkbookFactory
 import org.python.core.Py

@@ -15,8 +15,8 @@ ignitionModule {
     fileName.set("Ignition-Extensions.modl")
     id.set("org.imdc.extensions.IgnitionExtensions")
     moduleVersion.set("${project.version}")
-
     moduleDescription.set("Useful but niche extensions to Ignition for power users")
+    license.set("LICENSE.md")
     requiredIgnitionVersion.set(libs.versions.ignition.get())
 
     projectScopes.putAll(
