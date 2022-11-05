@@ -4,6 +4,7 @@ import com.inductiveautomation.ignition.common.Dataset
 import com.inductiveautomation.ignition.common.TypeUtilities
 import com.inductiveautomation.ignition.common.script.PyArgParser
 import com.inductiveautomation.ignition.common.script.builtin.KeywordArgs
+import com.inductiveautomation.ignition.common.script.hints.ScriptArg
 import com.inductiveautomation.ignition.common.script.hints.ScriptFunction
 import com.inductiveautomation.ignition.common.util.DatasetBuilder
 import org.apache.poi.ss.usermodel.CellType.BOOLEAN
@@ -340,6 +341,68 @@ object DatasetExtensions {
             }
 
             return dataset.build()
+        }
+    }
+
+    @Suppress("unused")
+    @ScriptFunction(docBundlePrefix = "DatasetExtensions")
+    fun equals(
+        @ScriptArg("dataset1") ds1: Dataset,
+        @ScriptArg("dataset2") ds2: Dataset,
+    ): Boolean {
+        return ds1 === ds2 || (columnsEqual(ds1, ds2) && valuesEqual(ds1, ds2))
+    }
+
+    @Suppress("unused")
+    @ScriptFunction(docBundlePrefix = "DatasetExtensions")
+    fun valuesEqual(
+        @ScriptArg("dataset1") ds1: Dataset,
+        @ScriptArg("dataset2") ds2: Dataset,
+    ): Boolean {
+        if (ds1 === ds2) {
+            return true
+        }
+        if (ds1.rowCount != ds2.rowCount || ds1.columnCount != ds2.columnCount) {
+            return false
+        }
+        return ds1.rowIndices.all { row ->
+            ds1.columnIndices.all { col ->
+                ds1[row, col] == ds2[row, col]
+            }
+        }
+    }
+
+    @Suppress("unused")
+    @ScriptFunction(docBundlePrefix = "DatasetExtensions")
+    @JvmOverloads
+    fun columnsEqual(
+        @ScriptArg("dataset1") ds1: Dataset,
+        @ScriptArg("dataset2") ds2: Dataset,
+        @ScriptArg("ignoreCase") ignoreCase: Boolean = false,
+        @ScriptArg("includeTypes") includeTypes: Boolean = true,
+    ): Boolean {
+        if (ds1 === ds2) {
+            return true
+        }
+        if (ds1.columnCount != ds2.columnCount) {
+            return false
+        }
+
+        val columnNames = ds1.columnNames zip ds2.columnNames
+        val columnNamesMatch = columnNames.all { (left, right) ->
+            left.equals(right, ignoreCase)
+        }
+        if (!columnNamesMatch) {
+            return false
+        }
+
+        if (!includeTypes) {
+            return true
+        }
+
+        val columnTypes = ds1.columnTypes.asSequence() zip ds2.columnTypes.asSequence()
+        return columnTypes.all { (left, right) ->
+            left == right
         }
     }
 }
