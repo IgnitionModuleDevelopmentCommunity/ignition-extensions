@@ -14,8 +14,15 @@ import org.apache.poi.ss.usermodel.CellType.STRING
 import org.apache.poi.ss.usermodel.DateUtil
 import org.apache.poi.ss.usermodel.WorkbookFactory
 import org.python.core.Py
+import org.python.core.PyBoolean
+import org.python.core.PyFloat
 import org.python.core.PyFunction
+import org.python.core.PyInteger
+import org.python.core.PyLong
 import org.python.core.PyObject
+import org.python.core.PyString
+import org.python.core.PyType
+import org.python.core.PyUnicode
 import java.io.File
 import java.math.BigDecimal
 import java.util.Date
@@ -404,5 +411,29 @@ object DatasetExtensions {
         return columnTypes.all { (left, right) ->
             left == right
         }
+    }
+
+    @ScriptFunction(docBundlePrefix = "DatasetExtensions")
+    @KeywordArgs(
+        names = ["**columns"],
+        types = [KeywordArgs::class],
+    )
+    fun builder(args: Array<PyObject>, keywords: Array<String>): DatasetBuilder {
+        if (args.size != keywords.size) throw Py.ValueError("builder must be called with only keyword arguments")
+        val colNames = keywords.toList()
+        val colTypes = args.mapIndexed { i, type ->
+            if (type !is PyType) {
+                throw Py.TypeError("${keywords[i]} was a ${type::class.simpleName}, but should be a type")
+            }
+            when (type) {
+                PyString.TYPE, PyUnicode.TYPE -> String::class.java
+                PyBoolean.TYPE -> Boolean::class.java
+                PyInteger.TYPE -> Int::class.java
+                PyLong.TYPE -> Long::class.java
+                PyFloat.TYPE -> Double::class.java
+                else -> type.toJava<Class<*>>()
+            }
+        }
+        return DatasetBuilder.newBuilder().colNames(colNames).colTypes(colTypes)
     }
 }

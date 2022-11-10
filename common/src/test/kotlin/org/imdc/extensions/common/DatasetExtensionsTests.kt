@@ -7,6 +7,8 @@ import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import org.imdc.extensions.common.DatasetExtensions.printDataset
 import org.python.core.Py
+import java.awt.Color
+import java.util.Date
 import kotlin.io.path.createTempFile
 import kotlin.io.path.writeBytes
 
@@ -38,6 +40,9 @@ class DatasetExtensionsTests : JythonTest(
         }
         globals["xlsBytes"] = xlsSample
         globals["xlsFile"] = tempXls.toString()
+
+        globals["date"] = Date::class.java
+        globals["color"] = Color::class.java
     },
 ) {
     private fun Dataset.asClue(assertions: (Dataset) -> Unit) {
@@ -285,6 +290,156 @@ class DatasetExtensionsTests : JythonTest(
                         "Discounts",
                         "Sales",
                         "COGS",
+                    )
+                }
+            }
+        }
+
+        context("Builder") {
+            test("Basic usage") {
+                eval<Dataset>("utils.builder(a=int, b=str, c=bool).addRow(1, '2', False).build()").asClue {
+                    it.rowCount shouldBe 1
+                    it.columnCount shouldBe 3
+                    it.columnNames shouldBe listOf(
+                        "a",
+                        "b",
+                        "c",
+                    )
+                    it.columnTypes shouldBe listOf(
+                        Int::class.java,
+                        String::class.java,
+                        Boolean::class.java,
+                    )
+                }
+            }
+
+            test("Complex types") {
+                eval<Dataset>(
+                    """
+                    utils.builder(date=date, color=color, unicode=unicode) \
+                        .addRow(date(), color.RED, u'test') \
+                        .build()
+                    """.trimIndent(),
+                ).asClue {
+                    it.rowCount shouldBe 1
+                    it.columnCount shouldBe 3
+                    it.columnNames shouldBe listOf(
+                        "date",
+                        "color",
+                        "unicode",
+                    )
+                    it.columnTypes shouldBe listOf(
+                        Date::class.java,
+                        Color::class.java,
+                        String::class.java,
+                    )
+                }
+            }
+
+            test("Nulls in rows") {
+                eval<Dataset>(
+                    """
+                    utils.builder(a=int, b=str, c=bool) \
+                        .addRow(1, '2', False) \
+                        .addRow(None, None, None) \
+                        .build()
+                    """.trimIndent(),
+                ).asClue {
+                    it.rowCount shouldBe 2
+                    it.columnCount shouldBe 3
+                    it.columnNames shouldBe listOf(
+                        "a",
+                        "b",
+                        "c",
+                    )
+                    it.columnTypes shouldBe listOf(
+                        Int::class.java,
+                        String::class.java,
+                        Boolean::class.java,
+                    )
+                }
+            }
+
+            test("Empty dataset") {
+                eval<Dataset>("utils.builder().build()").asClue {
+                    it.rowCount shouldBe 0
+                    it.columnCount shouldBe 0
+                }
+            }
+
+            test("Add a row as a list") {
+                eval<Dataset>(
+                    """
+                    utils.builder(a=int, b=str, c=bool) \
+                        .addRow([1, '2', False]) \
+                        .build()
+                    """.trimIndent(),
+                ).asClue {
+                    it.rowCount shouldBe 1
+                    it.columnCount shouldBe 3
+                }
+            }
+
+            test("Add a row as a tuple") {
+                eval<Dataset>(
+                    """
+                    utils.builder(a=int, b=str, c=bool) \
+                        .addRow((1, '2', False)) \
+                        .build()
+                    """.trimIndent(),
+                ).asClue {
+                    it.rowCount shouldBe 1
+                    it.columnCount shouldBe 3
+                }
+            }
+
+            test("Columns with complex names") {
+                eval<Dataset>(
+                    """
+                    utils.builder(**{'a space': int, u'😍': bool, r',./;\'[]-=<>?:"{}|_+!@#%^&*()`~': str}) \
+                        .addRow((1, '2', False)) \
+                        .build()
+                    """.trimIndent(),
+                ).asClue {
+                    it.rowCount shouldBe 1
+                    it.columnCount shouldBe 3
+                    it.columnNames shouldBe listOf(
+                        "a space",
+                        "\uD83D\uDE0D",
+                        """,./;\'[]-=<>?:"{}|_+!@#%^&*()`~""",
+                    )
+                }
+            }
+
+            test("Invalid types") {
+                shouldThrowPyException(Py.TypeError) {
+                    eval<Dataset>("utils.builder(a=1).build()")
+                }
+                shouldThrowPyException(Py.TypeError) {
+                    eval<Dataset>("utils.builder(a=None).build()")
+                }
+            }
+
+            test("Row without enough vararg values") {
+                shouldThrowPyException(Py.TypeError) {
+                    eval<Dataset>(
+                        """
+                        utils.builder(a=int, b=str, c=bool) \
+                            .addRow(1, '2') \
+                            .build()
+                        """.trimIndent(),
+                    )
+                }
+            }
+
+            test("Row without enough list values") {
+                shouldThrowPyException(Py.TypeError) {
+                    eval<Dataset>(
+                        """
+                        utils.builder(a=int, b=str, c=bool) \
+                            .addRow([1, '2']) \
+                            .build()
+                        """.trimIndent(),
                     )
                 }
             }

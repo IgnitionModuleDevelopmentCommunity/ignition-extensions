@@ -1,10 +1,12 @@
 package org.imdc.extensions.common
 
 import com.inductiveautomation.ignition.common.TypeUtilities
+import io.kotest.assertions.fail
 import io.kotest.core.listeners.BeforeEachListener
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.core.test.TestCase
-import io.kotest.matchers.booleans.shouldBeTrue
+import io.kotest.matchers.Matcher
+import io.kotest.matchers.MatcherResult
 import org.intellij.lang.annotations.Language
 import org.python.core.CompileMode
 import org.python.core.CompilerFlags
@@ -56,8 +58,10 @@ abstract class JythonTest(init: (globals: PyStringMap) -> Unit) : FunSpec() {
         try {
             case()
         } catch (exception: PyException) {
-            exception.match(type).shouldBeTrue()
+            PyExceptionTypeMatcher(exception).test(type)
+            return
         }
+        fail("Expected a $type to be thrown, but nothing was thrown")
     }
 
     companion object {
@@ -74,6 +78,16 @@ abstract class JythonTest(init: (globals: PyStringMap) -> Unit) : FunSpec() {
 
         operator fun PyStringMap.set(key: String, value: Any?) {
             return __setitem__(key, Py.java2py(value))
+        }
+
+        class PyExceptionTypeMatcher(val expected: PyException) : Matcher<PyObject> {
+            override fun test(value: PyObject): MatcherResult {
+                return MatcherResult(
+                    expected.match(value),
+                    failureMessageFn = { "Expected a $expected, but was $value" },
+                    negatedFailureMessageFn = { "Result should not be a $expected, but was $value" },
+                )
+            }
         }
     }
 }
