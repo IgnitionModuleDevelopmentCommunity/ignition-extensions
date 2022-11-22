@@ -3,14 +3,10 @@ plugins {
     kotlin("jvm")
 }
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(libs.versions.java.get()))
-    }
-}
-
 kotlin {
-    jvmToolchain(libs.versions.java.map(String::toInt).get())
+    jvmToolchain {
+        languageVersion.set(libs.versions.java.map(JavaLanguageVersion::of))
+    }
 }
 
 dependencies {

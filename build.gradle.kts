@@ -2,7 +2,6 @@
 plugins {
     alias(libs.plugins.kotlin)
     alias(libs.plugins.modl)
-    // alias(libs.plugins.dokka) TODO: Investigate Dokka for automatic generation of module docs
 }
 
 subprojects {
@@ -21,10 +20,10 @@ ignitionModule {
 
     projectScopes.putAll(
         mapOf(
-            ":client" to "C",
-            ":common" to "GDC",
-            ":designer" to "D",
-            ":gateway" to "G",
+            projects.common.dependencyProject.path to "GDC",
+            projects.gateway.dependencyProject.path to "G",
+            projects.designer.dependencyProject.path to "D",
+            projects.client.dependencyProject.path to "C",
         ),
     )
 
