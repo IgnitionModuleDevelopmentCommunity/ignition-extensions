@@ -9,15 +9,15 @@ import java.lang.reflect.Method
 class PyObjectAppendable(target: PyObject) : Appendable {
     private val writeMethod = target.__getattr__("write")
 
-    override fun append(csq: CharSequence): Appendable = this.apply {
+    override fun append(csq: CharSequence?): Appendable = apply {
         writeMethod.__call__(Py.newStringOrUnicode(csq.toString()))
     }
 
-    override fun append(csq: CharSequence, start: Int, end: Int): Appendable = this.apply {
-        append(csq.subSequence(start, end))
+    override fun append(csq: CharSequence?, start: Int, end: Int): Appendable = apply {
+        append(csq.toString().subSequence(start, end))
     }
 
-    override fun append(c: Char): Appendable = this.apply {
+    override fun append(c: Char): Appendable = apply {
         append(c.toString())
     }
 }
