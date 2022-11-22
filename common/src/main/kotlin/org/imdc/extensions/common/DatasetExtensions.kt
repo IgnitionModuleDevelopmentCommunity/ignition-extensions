@@ -426,17 +426,23 @@ object DatasetExtensions {
         if (args.size != keywords.size) throw Py.ValueError("builder must be called with only keyword arguments")
         val colNames = keywords.toList()
         val colTypes = args.mapIndexed { i, type ->
-            when (type) {
-                is PyBaseString -> classNameResolver.classForName(type.asString())
-                !is PyType -> throw Py.TypeError("${keywords[i]} was a ${type::class.simpleName}, but should be a type")
-                PyString.TYPE, PyUnicode.TYPE -> String::class.java
-                PyBoolean.TYPE -> Boolean::class.java
-                PyInteger.TYPE -> Int::class.java
-                PyLong.TYPE -> Long::class.java
-                PyFloat.TYPE -> Double::class.java
-                else -> type.toJava<Class<*>>()
+            try {
+                type.asJavaClass()
+            } catch (e: ClassCastException) {
+                throw Py.TypeError("${keywords[i]} was a ${type::class.simpleName}, but should be a type or valid string typecode")
             }
         }
         return DatasetBuilder.newBuilder().colNames(colNames).colTypes(colTypes)
+    }
+
+    fun PyObject.asJavaClass(): Class<*>? = when (this) {
+        is PyBaseString -> classNameResolver.classForName(asString())
+        !is PyType -> throw ClassCastException()
+        PyString.TYPE, PyUnicode.TYPE -> String::class.java
+        PyBoolean.TYPE -> Boolean::class.java
+        PyInteger.TYPE -> Int::class.java
+        PyLong.TYPE -> Long::class.java
+        PyFloat.TYPE -> Double::class.java
+        else -> toJava<Class<*>>()
     }
 }

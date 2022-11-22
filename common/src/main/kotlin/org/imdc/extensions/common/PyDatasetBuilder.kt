@@ -4,6 +4,7 @@ import com.inductiveautomation.ignition.common.Dataset
 import com.inductiveautomation.ignition.common.script.DisposablePyObjectAdapter
 import com.inductiveautomation.ignition.common.util.DatasetBuilder
 import com.inductiveautomation.ignition.common.xmlserialization.ClassNameResolver
+import org.imdc.extensions.common.DatasetExtensions.asJavaClass
 import org.python.core.Py
 import org.python.core.PyObject
 import org.python.core.adapter.PyObjectAdapter
@@ -20,12 +21,8 @@ class PyDatasetBuilder(private val builder: DatasetBuilder) : PyObject() {
         builder.colNames(names)
     }
 
-    fun colTypes(vararg types: String) = apply {
-        builder.colTypes(types.map { resolver.classForName(it) })
-    }
-
-    fun colTypes(vararg types: Class<*>?) = apply {
-        builder.colTypes(types.toList())
+    fun colTypes(vararg types: PyObject) = apply {
+        builder.colTypes(types.map { it.asJavaClass() })
     }
 
     fun colTypes(types: List<Class<*>>) = apply {

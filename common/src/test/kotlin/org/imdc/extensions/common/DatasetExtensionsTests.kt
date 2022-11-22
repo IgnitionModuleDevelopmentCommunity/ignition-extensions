@@ -43,6 +43,9 @@ class DatasetExtensionsTests : JythonTest(
 
         globals["date"] = Date::class.java
         globals["color"] = Color::class.java
+        globals["javaInt"] = Int::class.java
+        globals["javaString"] = String::class.java
+        globals["javaBool"] = Boolean::class.java
     },
 ) {
     private fun Dataset.asClue(assertions: (Dataset) -> Unit) {
@@ -315,8 +318,83 @@ class DatasetExtensionsTests : JythonTest(
                 }
             }
 
-            test("String type codes") {
+            test("String type codes in builder call") {
                 eval<Dataset>("utils.builder(a='i', b='str', c='b').addRow(1, '2', False).build()").asClue {
+                    it.rowCount shouldBe 1
+                    it.columnCount shouldBe 3
+                    it.columnNames shouldBe listOf(
+                        "a",
+                        "b",
+                        "c",
+                    )
+                    it.columnTypes shouldBe listOf(
+                        Int::class.java,
+                        String::class.java,
+                        Boolean::class.java,
+                    )
+                }
+            }
+
+            test("Separate colTypes as java types") {
+                eval<Dataset>(
+                    """
+                    utils.builder() \
+                        .colNames('a', 'b', 'c') \
+                        .colTypes(javaInt, javaString, javaBool) \
+                        .addRow(1, '2', False) \
+                        .build()
+                    """.trimIndent(),
+                ).asClue {
+                    it.rowCount shouldBe 1
+                    it.columnCount shouldBe 3
+                    it.columnNames shouldBe listOf(
+                        "a",
+                        "b",
+                        "c",
+                    )
+                    it.columnTypes shouldBe listOf(
+                        Int::class.java,
+                        String::class.java,
+                        Boolean::class.java,
+                    )
+                }
+            }
+
+            test("Separate colTypes as Python types") {
+                eval<Dataset>(
+                    """
+                    utils.builder() \
+                        .colNames('a', 'b', 'c') \
+                        .colTypes(int, str, bool) \
+                        .addRow(1, '2', False) \
+                        .build()
+                    """.trimIndent(),
+                ).asClue {
+                    it.rowCount shouldBe 1
+                    it.columnCount shouldBe 3
+                    it.columnNames shouldBe listOf(
+                        "a",
+                        "b",
+                        "c",
+                    )
+                    it.columnTypes shouldBe listOf(
+                        Int::class.java,
+                        String::class.java,
+                        Boolean::class.java,
+                    )
+                }
+            }
+
+            test("Separate colTypes as string shortcodes") {
+                eval<Dataset>(
+                    """
+                    utils.builder() \
+                        .colNames('a', 'b', 'c') \
+                        .colTypes('i', 'str', 'b') \
+                        .addRow(1, '2', False) \
+                        .build()
+                    """.trimIndent(),
+                ).asClue {
                     it.rowCount shouldBe 1
                     it.columnCount shouldBe 3
                     it.columnNames shouldBe listOf(
