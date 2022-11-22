@@ -7,6 +7,7 @@ import com.inductiveautomation.ignition.common.script.builtin.KeywordArgs
 import com.inductiveautomation.ignition.common.script.hints.ScriptArg
 import com.inductiveautomation.ignition.common.script.hints.ScriptFunction
 import com.inductiveautomation.ignition.common.util.DatasetBuilder
+import com.inductiveautomation.ignition.common.xmlserialization.ClassNameResolver
 import org.apache.poi.ss.usermodel.CellType.BOOLEAN
 import org.apache.poi.ss.usermodel.CellType.FORMULA
 import org.apache.poi.ss.usermodel.CellType.NUMERIC
@@ -14,6 +15,7 @@ import org.apache.poi.ss.usermodel.CellType.STRING
 import org.apache.poi.ss.usermodel.DateUtil
 import org.apache.poi.ss.usermodel.WorkbookFactory
 import org.python.core.Py
+import org.python.core.PyBaseString
 import org.python.core.PyBoolean
 import org.python.core.PyFloat
 import org.python.core.PyFunction
@@ -413,6 +415,8 @@ object DatasetExtensions {
         }
     }
 
+    private val classNameResolver = ClassNameResolver.createBasic()
+
     @ScriptFunction(docBundlePrefix = "DatasetExtensions")
     @KeywordArgs(
         names = ["**columns"],
@@ -422,10 +426,9 @@ object DatasetExtensions {
         if (args.size != keywords.size) throw Py.ValueError("builder must be called with only keyword arguments")
         val colNames = keywords.toList()
         val colTypes = args.mapIndexed { i, type ->
-            if (type !is PyType) {
-                throw Py.TypeError("${keywords[i]} was a ${type::class.simpleName}, but should be a type")
-            }
             when (type) {
+                is PyBaseString -> classNameResolver.classForName(type.asString())
+                !is PyType -> throw Py.TypeError("${keywords[i]} was a ${type::class.simpleName}, but should be a type")
                 PyString.TYPE, PyUnicode.TYPE -> String::class.java
                 PyBoolean.TYPE -> Boolean::class.java
                 PyInteger.TYPE -> Int::class.java

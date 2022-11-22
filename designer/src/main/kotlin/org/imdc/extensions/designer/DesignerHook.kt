@@ -8,6 +8,7 @@ import com.inductiveautomation.ignition.designer.model.AbstractDesignerModuleHoo
 import com.inductiveautomation.ignition.designer.model.DesignerContext
 import org.imdc.extensions.common.DatasetExtensions
 import org.imdc.extensions.common.ExtensionDocProvider
+import org.imdc.extensions.common.PyDatasetBuilder
 import org.imdc.extensions.common.UtilitiesExtensions
 import org.imdc.extensions.common.addPropertyBundle
 import org.imdc.extensions.common.expressions.IsAvailableFunction
@@ -24,6 +25,12 @@ class DesignerHook : AbstractDesignerModuleHook() {
             addPropertyBundle<UtilitiesExtensions>()
             addPropertyBundle<DesignerProjectExtensions>()
         }
+
+        PyDatasetBuilder.register()
+    }
+
+    override fun shutdown() {
+        PyDatasetBuilder.unregister()
     }
 
     override fun initializeScriptManager(manager: ScriptManager) {

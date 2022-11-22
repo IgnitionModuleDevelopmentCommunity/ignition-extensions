@@ -58,6 +58,8 @@ class DatasetExtensionsTests : JythonTest(
     }
 
     init {
+        PyDatasetBuilder.register()
+
         context("Map tests") {
             test("Null dataset") {
                 shouldThrowPyException(Py.TypeError) {
@@ -298,6 +300,23 @@ class DatasetExtensionsTests : JythonTest(
         context("Builder") {
             test("Basic usage") {
                 eval<Dataset>("utils.builder(a=int, b=str, c=bool).addRow(1, '2', False).build()").asClue {
+                    it.rowCount shouldBe 1
+                    it.columnCount shouldBe 3
+                    it.columnNames shouldBe listOf(
+                        "a",
+                        "b",
+                        "c",
+                    )
+                    it.columnTypes shouldBe listOf(
+                        Int::class.java,
+                        String::class.java,
+                        Boolean::class.java,
+                    )
+                }
+            }
+
+            test("String type codes") {
+                eval<Dataset>("utils.builder(a='i', b='str', c='b').addRow(1, '2', False).build()").asClue {
                     it.rowCount shouldBe 1
                     it.columnCount shouldBe 3
                     it.columnNames shouldBe listOf(

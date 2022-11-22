@@ -8,6 +8,7 @@ import com.inductiveautomation.ignition.gateway.model.AbstractGatewayModuleHook
 import com.inductiveautomation.ignition.gateway.model.GatewayContext
 import org.imdc.extensions.common.DatasetExtensions
 import org.imdc.extensions.common.ExtensionDocProvider
+import org.imdc.extensions.common.PyDatasetBuilder
 import org.imdc.extensions.common.UtilitiesExtensions
 import org.imdc.extensions.common.addPropertyBundle
 import org.imdc.extensions.common.expressions.IsAvailableFunction
@@ -24,10 +25,14 @@ class GatewayHook : AbstractGatewayModuleHook() {
             addPropertyBundle<UtilitiesExtensions>()
             addPropertyBundle<GatewayProjectExtensions>()
         }
+
+        PyDatasetBuilder.register()
     }
 
     override fun startup(activationState: LicenseState) {}
-    override fun shutdown() {}
+    override fun shutdown() {
+        PyDatasetBuilder.unregister()
+    }
 
     override fun initializeScriptManager(manager: ScriptManager) {
         manager.apply {
