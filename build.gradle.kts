@@ -4,6 +4,13 @@ plugins {
     alias(libs.plugins.modl)
 }
 
+allprojects {
+    repositories {
+        mavenCentral()
+        maven(url = "https://nexus.inductiveautomation.com/repository/public")
+    }
+}
+
 subprojects {
     // cascade version, which will be set at command line in CI, down to subprojects
     version = rootProject.version
@@ -15,8 +22,8 @@ ignitionModule {
     id.set("org.imdc.extensions.IgnitionExtensions")
     moduleVersion.set("${project.version}")
     moduleDescription.set("Useful but niche extensions to Ignition for power users")
-    license.set("LICENSE.md")
-    requiredIgnitionVersion.set(libs.versions.ignition.get())
+    license.set("LICENSE.html")
+    requiredIgnitionVersion.set(libs.versions.ignition)
 
     projectScopes.putAll(
         mapOf(
