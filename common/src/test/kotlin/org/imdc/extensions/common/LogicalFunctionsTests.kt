@@ -3,9 +3,9 @@ package org.imdc.extensions.common
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import org.imdc.extensions.common.ExpressionTestHarness.Companion.withFunction
-import org.imdc.extensions.common.expressions.LogicalFunction.AllOfFunction
-import org.imdc.extensions.common.expressions.LogicalFunction.AnyOfFunction
-import org.imdc.extensions.common.expressions.LogicalFunction.NoneOfFunction
+import org.imdc.extensions.common.expressions.LogicalPredicate.AllOfFunction
+import org.imdc.extensions.common.expressions.LogicalPredicate.AnyOfFunction
+import org.imdc.extensions.common.expressions.LogicalPredicate.NoneOfFunction
 
 class LogicalFunctionsTests : FunSpec() {
     init {
