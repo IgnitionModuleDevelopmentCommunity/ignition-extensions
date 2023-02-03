@@ -27,11 +27,15 @@ class GatewayHook : AbstractGatewayModuleHook() {
         }
 
         PyDatasetBuilder.register()
+
+        context.webResourceManager.addServlet(HistoryServlet.PATH, HistoryServlet::class.java)
     }
 
-    override fun startup(activationState: LicenseState) {}
+    override fun startup(activationState: LicenseState) = Unit
+
     override fun shutdown() {
         PyDatasetBuilder.unregister()
+        context.webResourceManager.removeServlet(HistoryServlet.PATH)
     }
 
     override fun initializeScriptManager(manager: ScriptManager) {
@@ -52,6 +56,6 @@ class GatewayHook : AbstractGatewayModuleHook() {
         }
     }
 
-    override fun isFreeModule(): Boolean = true
-    override fun isMakerEditionCompatible(): Boolean = true
+    override fun isFreeModule() = true
+    override fun isMakerEditionCompatible() = true
 }
