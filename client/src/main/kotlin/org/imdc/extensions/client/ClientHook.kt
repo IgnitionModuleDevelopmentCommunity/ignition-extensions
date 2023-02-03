@@ -12,6 +12,7 @@ import org.imdc.extensions.common.PyDatasetBuilder
 import org.imdc.extensions.common.UtilitiesExtensions
 import org.imdc.extensions.common.addPropertyBundle
 import org.imdc.extensions.common.expressions.IsAvailableFunction
+import org.imdc.extensions.common.expressions.LogicalFunction.Companion.registerLogicFunctions
 
 @Suppress("unused")
 class ClientHook : AbstractClientModuleHook() {
@@ -48,6 +49,7 @@ class ClientHook : AbstractClientModuleHook() {
                 IsAvailableFunction.CATEGORY,
                 IsAvailableFunction(),
             )
+            registerLogicFunctions()
         }
     }
 }
