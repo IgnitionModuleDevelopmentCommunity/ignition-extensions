@@ -66,12 +66,17 @@ class HistoryServlet : HttpServlet() {
                         JsonWriter(writer),
                     ),
                 )
+            } catch (e: TrialExpiredException) {
+                resp.status = HttpServletResponse.SC_PAYMENT_REQUIRED
+                logger.error("Tag historian module reported trial expired", e)
             } catch (e: Exception) {
                 resp.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
                 logger.error("Unexpected exception writing JSON content to servlet", e)
             }
         }
     }
+
+    class TrialExpiredException : Exception()
 
     class StreamingJsonWriter(private val jsonWriter: JsonWriter) : StreamingDatasetWriter {
         private lateinit var names: Array<String>
@@ -92,6 +97,10 @@ class HistoryServlet : HttpServlet() {
         }
 
         override fun write(data: Array<out Any?>, quality: Array<out QualityCode>): Unit = jsonWriter.run {
+            if (quality.any { it.`is`(QualityCode.Bad_TrialExpired) }) {
+                throw TrialExpiredException()
+            }
+
             writeObject {
                 for (index in data.indices) {
                     name(names[index])
