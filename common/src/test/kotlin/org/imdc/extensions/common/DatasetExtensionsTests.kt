@@ -16,6 +16,7 @@ import kotlin.io.path.writeBytes
 class DatasetExtensionsTests : JythonTest(
     { globals ->
         globals["utils"] = DatasetExtensions
+        globals["builder"] = DatasetBuilder.newBuilder()
         globals["dataset"] = DatasetBuilder.newBuilder()
             .colNames("a", "b", "c")
             .colTypes(Int::class.javaObjectType, Double::class.javaObjectType, String::class.java)
@@ -539,6 +540,16 @@ class DatasetExtensionsTests : JythonTest(
                         """.trimIndent(),
                     )
                 }
+            }
+
+            test("Column types regression (issue #24)") {
+                eval<Dataset>(
+                    """
+                        builder.colNames(dataset.columnNames) \
+                            .colTypes(dataset.columnTypes) \
+                            .build()
+                    """.trimIndent(),
+                )
             }
         }
     }

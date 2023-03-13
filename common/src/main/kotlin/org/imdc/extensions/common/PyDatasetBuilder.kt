@@ -22,7 +22,11 @@ class PyDatasetBuilder(private val builder: DatasetBuilder) : PyObject() {
     }
 
     fun colTypes(vararg types: PyObject) = apply {
-        builder.colTypes(types.map { it.asJavaClass() })
+        if (types.singleOrNull()?.isSequenceType == true) {
+            builder.colTypes(types.first().asIterable().map { it.asJavaClass() })
+        } else {
+            builder.colTypes(types.map { it.asJavaClass() })
+        }
     }
 
     fun colTypes(types: List<Class<*>>) = apply {
