@@ -25,6 +25,7 @@ class GatewayHook : AbstractGatewayModuleHook() {
             addPropertyBundle<DatasetExtensions>()
             addPropertyBundle<UtilitiesExtensions>()
             addPropertyBundle<GatewayProjectExtensions>()
+            addPropertyBundle<GatewayTagExtensions>()
         }
 
         PyDatasetBuilder.register()
@@ -44,6 +45,7 @@ class GatewayHook : AbstractGatewayModuleHook() {
             addScriptModule("system.dataset", DatasetExtensions, ExtensionDocProvider)
             addScriptModule("system.util", UtilitiesExtensions(context), ExtensionDocProvider)
             addScriptModule("system.project", GatewayProjectExtensions(context), ExtensionDocProvider)
+            addScriptModule("system.tag", GatewayTagExtensions(context), ExtensionDocProvider)
         }
     }
 
