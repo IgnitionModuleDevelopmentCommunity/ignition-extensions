@@ -2,5 +2,12 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:base"
+  ],
+  "ignoreDeps": [
+    "com.inductiveautomation.ignition:vision-client-api",
+    "com.inductiveautomation.ignition:client-api",
+    "com.inductiveautomation.ignition:designer-api",
+    "com.inductiveautomation.ignition:gateway-api",
+    "com.inductiveautomation.ignition:ignition-common"
   ]
 }
