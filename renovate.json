@@ -4,10 +4,10 @@
     "config:base"
   ],
   "ignoreDeps": [
-    "com.inductiveautomation.ignition:vision-client-api",
-    "com.inductiveautomation.ignition:client-api",
-    "com.inductiveautomation.ignition:designer-api",
-    "com.inductiveautomation.ignition:gateway-api",
-    "com.inductiveautomation.ignition:ignition-common"
+    "com.inductiveautomation.ignitionsdk:vision-client-api",
+    "com.inductiveautomation.ignitionsdk:client-api",
+    "com.inductiveautomation.ignitionsdk:designer-api",
+    "com.inductiveautomation.ignitionsdk:gateway-api",
+    "com.inductiveautomation.ignitionsdk:ignition-common"
   ]
 }
