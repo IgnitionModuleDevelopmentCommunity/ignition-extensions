@@ -2,7 +2,7 @@
 java = "11"
 kotlin = "1.8.0"
 kotest = "5.5.4"
-ignition = "8.1.0"
+ignition = "8.1.26"
 
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
