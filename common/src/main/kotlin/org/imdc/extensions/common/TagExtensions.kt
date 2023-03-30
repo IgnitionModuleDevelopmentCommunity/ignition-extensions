@@ -7,6 +7,7 @@ import com.inductiveautomation.ignition.common.script.ScriptContext
 import com.inductiveautomation.ignition.common.script.builtin.KeywordArgs
 import com.inductiveautomation.ignition.common.script.hints.ScriptFunction
 import com.inductiveautomation.ignition.common.tags.config.TagConfigurationModel
+import com.inductiveautomation.ignition.common.tags.config.properties.WellKnownTagProps
 import com.inductiveautomation.ignition.common.tags.model.TagPath
 import com.inductiveautomation.ignition.common.tags.paths.parser.TagPathParser
 import org.python.core.PyDictionary
@@ -44,13 +45,15 @@ abstract class TagExtensions {
     }
 
     private fun TagConfigurationModel.toPyDictionary(): PyDictionary {
-        val baseTagDict = PyTagDictionary.Builder()
-            .setTagPath(path)
-            .setTagType(type)
-            .build(localConfiguration)
+        return PyTagDictionary.Builder().build(localConfiguration).apply {
+            put(WellKnownTagProps.Name, path)
+            put(WellKnownTagProps.TagType, type)
 
-        baseTagDict["tags"] = children.toPyTagList()
-        return baseTagDict
+            val childList = children.toPyTagList()
+            if (childList.isNotEmpty()) {
+                put("tags", childList)
+            }
+        }
     }
 
     private fun List<TagConfigurationModel>.toPyTagList() = fold(PyTagList()) { acc, childModel ->
