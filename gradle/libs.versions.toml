@@ -1,6 +1,6 @@
 [versions]
 java = "11"
-kotlin = "1.8.20"
+kotlin = "1.8.21"
 kotest = "5.5.5"
 ignition = "8.1.0"
 
