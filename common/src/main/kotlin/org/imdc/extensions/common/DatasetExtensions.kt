@@ -220,8 +220,8 @@ object DatasetExtensions {
     @Suppress("unused")
     @ScriptFunction(docBundlePrefix = "DatasetExtensions")
     @KeywordArgs(
-        names = ["input", "headerRow", "sheetNumber", "firstRow", "lastRow", "firstColumn", "lastColumn", "stringAll"],
-        types = [ByteArray::class, Integer::class, Integer::class, Integer::class, Integer::class, Integer::class, Integer::class, Array<String>::class],
+        names = ["input", "headerRow", "sheetNumber", "firstRow", "lastRow", "firstColumn", "lastColumn", "stringColumns"],
+        types = [ByteArray::class, Integer::class, Integer::class, Integer::class, Integer::class, Integer::class, Integer::class, Array<Integer>::class],
     )
     fun fromExcel(args: Array<PyObject>, keywords: Array<String>): Dataset {
         val parsedArgs = PyArgParser.parseArgs(
@@ -235,14 +235,15 @@ object DatasetExtensions {
                 "lastRow",
                 "firstColumn",
                 "lastColumn",
-                "stringAll"
+                "stringColumns"
             ),
             Array(8) { Any::class.java },
             "fromExcel",
         )
 
-        val tempStringAll = parsedArgs.getInteger("stringAll").orElse(0)
-        val stringAll = tempStringAll != 0
+        //val tempstringColumn = parsedArgs.getInteger("stringColumn").orElse(0)
+        val stringColumns = parsedArgs.getPyObject("stringColumns").map { it.toJava<Array<*>>() }.orElse(arrayOf<String>())
+        //val stringColumn = tempstringColumn != 0
         when (val input = parsedArgs.requirePyObject("input").toJava<Any>()) {
             is String -> WorkbookFactory.create(File(input))
             is ByteArray -> WorkbookFactory.create(input.inputStream().buffered())
@@ -297,16 +298,17 @@ object DatasetExtensions {
                 
                 val rowValues = Array<Any?>(columnCount) { j ->
                     val cell = row.getCell(j + firstColumn)
+                    val stringColumn = j in stringColumns
                     if(cell == null){
                         if (!typesSet) {
-                            if (stringAll) {
+                            if (stringColumn) {
                                 columnTypes.add(String::class.java)
                             }
                             else{
                                 columnTypes.add(Any::class.java)
                             }
                         }
-                        if (stringAll) {
+                        if (stringColumn) {
                             null.toString()
                         }
                         else{
@@ -319,7 +321,7 @@ object DatasetExtensions {
                         if(cellType == "NUMERIC") {
                             if (DateUtil.isCellDateFormatted(cell)) {
                                 if (!typesSet) {
-                                    if(stringAll){
+                                    if(stringColumn){
                                         columnTypes.add(String::class.java)
                                     }
                                     else{
@@ -328,7 +330,7 @@ object DatasetExtensions {
                                     
                                 }
                                 val tempCell = cell.dateCellValue                       
-                                if(stringAll){
+                                if(stringColumn){
                                     tempCell.toString()
                                 }
                                 else{
@@ -338,14 +340,14 @@ object DatasetExtensions {
                                 val numericCellValue = cell.numericCellValue
                                 if (BigDecimal(numericCellValue).scale() == 0) {
                                     if (!typesSet) {
-                                        if(stringAll){
+                                        if(stringColumn){
                                             columnTypes.add(String::class.java)
                                         }
                                         else{
                                             columnTypes.add(Int::class.javaObjectType)
                                         }       
                                     }
-                                    if(stringAll){
+                                    if(stringColumn){
                                         numericCellValue.toInt().toString()
                                     }
                                     else{
@@ -353,14 +355,14 @@ object DatasetExtensions {
                                     }                  
                                 } else {
                                     if (!typesSet) {
-                                        if(stringAll){
+                                        if(stringColumn){
                                             columnTypes.add(String::class.java)
                                         }
                                         else{
                                             columnTypes.add(Double::class.javaObjectType)
                                         }     
                                     }
-                                    if(stringAll){
+                                    if(stringColumn){
                                         numericCellValue.toString()
                                     }
                                     else{
@@ -381,7 +383,7 @@ object DatasetExtensions {
                             if (!typesSet) {
                                 columnTypes.add(Boolean::class.javaObjectType)
                             }
-                            if(stringAll){
+                            if(stringColumn){
                                 cell.booleanCellValue.toString()
                             }
                             else{
@@ -391,14 +393,14 @@ object DatasetExtensions {
 
                         else{
                             if (!typesSet) {
-                                if (stringAll) {
+                                if (stringColumn) {
                                     columnTypes.add(String::class.java)
                                 }
                                 else{
                                     columnTypes.add(Any::class.java)
                                 }
                             }
-                            if (stringAll) {
+                            if (stringColumn) {
                                 null.toString()
                             }
                             else{
