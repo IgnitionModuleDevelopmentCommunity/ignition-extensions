@@ -1,6 +1,7 @@
 package org.imdc.extensions.common
 
 import com.inductiveautomation.ignition.common.Dataset
+import com.inductiveautomation.ignition.common.PyUtilities
 import com.inductiveautomation.ignition.common.TypeUtilities
 import com.inductiveautomation.ignition.common.script.PyArgParser
 import com.inductiveautomation.ignition.common.script.builtin.KeywordArgs
@@ -8,10 +9,8 @@ import com.inductiveautomation.ignition.common.script.hints.ScriptArg
 import com.inductiveautomation.ignition.common.script.hints.ScriptFunction
 import com.inductiveautomation.ignition.common.util.DatasetBuilder
 import com.inductiveautomation.ignition.common.xmlserialization.ClassNameResolver
-import org.apache.poi.ss.usermodel.CellType.BOOLEAN
-import org.apache.poi.ss.usermodel.CellType.FORMULA
-import org.apache.poi.ss.usermodel.CellType.NUMERIC
-import org.apache.poi.ss.usermodel.CellType.STRING
+import org.apache.poi.ss.usermodel.Cell
+import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.DateUtil
 import org.apache.poi.ss.usermodel.WorkbookFactory
 import org.python.core.Py
@@ -21,15 +20,19 @@ import org.python.core.PyDictionary
 import org.python.core.PyFloat
 import org.python.core.PyFunction
 import org.python.core.PyInteger
+import org.python.core.PyList
 import org.python.core.PyLong
 import org.python.core.PyObject
 import org.python.core.PyString
+import org.python.core.PyStringMap
 import org.python.core.PyType
 import org.python.core.PyUnicode
 import java.io.File
 import java.math.BigDecimal
 import java.util.Date
+import kotlin.jvm.optionals.getOrElse
 import kotlin.math.max
+import kotlin.streams.asSequence
 
 object DatasetExtensions {
     @Suppress("unused")
@@ -224,44 +227,37 @@ object DatasetExtensions {
         names = ["dataset", "filterNull"],
         types = [Dataset::class, Boolean::class],
     )
-    fun toDict(args: Array<PyObject>, keywords: Array<String>): PyDictionary {
+    fun toDict(args: Array<PyObject>, keywords: Array<String>): PyStringMap {
         val parsedArgs = PyArgParser.parseArgs(
             args,
             keywords,
-            arrayOf(
-                "dataset",
-                "filterNull",
-            ),
+            arrayOf("dataset", "filterNull"),
             Array(2) { Any::class.java },
             "toDict",
         )
         val dataset = parsedArgs.requirePyObject("dataset").toJava<Dataset>()
         val filterNull = parsedArgs.getBoolean("filterNull").orElse(false)
-        val pyDict = PyDictionary()
-        for (column in 0 until dataset.columnCount) {
-            val rowArray = if (filterNull) {
-                (0 until dataset.rowCount)
-                    .mapNotNull { row ->
-                        dataset.getValueAt(row, column)
-                    }
-                    .toList()
-            } else {
-                (0 until dataset.rowCount)
-                    .map { row ->
-                        dataset.getValueAt(row, column)
-                    }
-                    .toList()
-            }
-            pyDict[dataset.columnNames[column]] = rowArray
-        }
-        return pyDict
+        return PyStringMap(
+            dataset.columnIndices.associate { col ->
+                dataset.getColumnName(col) to PyList(
+                    buildList {
+                        for (row in dataset.rowIndices) {
+                            val value = dataset[row, col]
+                            if (value != null || !filterNull) {
+                                add(value)
+                            }
+                        }
+                    },
+                )
+            },
+        )
     }
 
     @Suppress("unused")
     @ScriptFunction(docBundlePrefix = "DatasetExtensions")
     @KeywordArgs(
-        names = ["input", "headerRow", "sheetNumber", "firstRow", "lastRow", "firstColumn", "lastColumn", "stringColumns"],
-        types = [ByteArray::class, Int::class, Int::class, Int::class, Int::class, Int::class, Int::class, Array<Int>::class],
+        names = ["input", "headerRow", "sheetNumber", "firstRow", "lastRow", "firstColumn", "lastColumn", "typeOverrides"],
+        types = [ByteArray::class, Int::class, Int::class, Int::class, Int::class, Int::class, Int::class, PyDictionary::class],
     )
     fun fromExcel(args: Array<PyObject>, keywords: Array<String>): Dataset {
         val parsedArgs = PyArgParser.parseArgs(
@@ -275,15 +271,20 @@ object DatasetExtensions {
                 "lastRow",
                 "firstColumn",
                 "lastColumn",
-                "stringColumns"
+                "typeOverrides",
             ),
             Array(8) { Any::class.java },
             "fromExcel",
         )
 
-        //val tempstringColumn = parsedArgs.getInteger("stringColumn").orElse(0)
-        val stringColumns = parsedArgs.getPyObject("stringColumns").map { it.toJava<Array<*>>() }.orElse(arrayOf<String>())
-        //val stringColumn = tempstringColumn != 0
+        val typeOverrides = parsedArgs.getPyObject("typeColumns")
+            .map(PyUtilities::streamEntries)
+            .map { stream ->
+                stream.asSequence().associate { (key, value) ->
+                    key.asIndex() to value.asJavaClass()
+                }
+            }.getOrElse { emptyMap() }
+
         when (val input = parsedArgs.requirePyObject("input").toJava<Any>()) {
             is String -> WorkbookFactory.create(File(input))
             is ByteArray -> WorkbookFactory.create(input.inputStream().buffered())
@@ -306,7 +307,8 @@ object DatasetExtensions {
             }
 
             val columnRow = sheet.getRow(if (headerRow >= 0) headerRow else firstRow)
-            val firstColumn = parsedArgs.getInteger("firstColumn").orElseGet { columnRow.firstCellNum.toInt() }
+            val firstColumn =
+                parsedArgs.getInteger("firstColumn").orElseGet { columnRow.firstCellNum.toInt() }
             val lastColumn =
                 parsedArgs.getInteger("lastColumn").map { it + 1 }.orElseGet { columnRow.lastCellNum.toInt() }
             if (firstColumn >= lastColumn) {
@@ -335,110 +337,66 @@ object DatasetExtensions {
                 }
 
                 val row = sheet.getRow(i)
-                
+
                 val rowValues = Array<Any?>(columnCount) { j ->
-                    val cell = row.getCell(j + firstColumn)
-                    val stringColumn = j in stringColumns
-                    if(cell == null){
+                    val cell: Cell? = row.getCell(j + firstColumn)
+                    val typeOverride = typeOverrides[j]
+                    if (typeOverride != null) {
                         if (!typesSet) {
-                            if (stringColumn) {
-                                columnTypes.add(String::class.java)
-                            }
-                            else{
-                                columnTypes.add(Any::class.java)
-                            }
+                            columnTypes.add(typeOverride)
                         }
-                        null
-                    }
-                    else{
-                        val cellType = cell.getCellType().toString()
-                    
-                        if(cellType == "NUMERIC") {
-                            if (DateUtil.isCellDateFormatted(cell)) {
-                                if (!typesSet) {
-                                    if(stringColumn){
-                                        columnTypes.add(String::class.java)
-                                    }
-                                    else{
+                        when {
+                            cell == null -> null
+                            typeOverride.isAssignableFrom<Date>() -> cell.dateCellValue
+                            typeOverride.isAssignableFrom<Boolean>() -> cell.booleanCellValue
+                            typeOverride.isAssignableFrom<String>() -> cell.stringCellValue
+                            typeOverride.isAssignableFrom<Int>() -> cell.numericCellValue.toInt()
+                            typeOverride.isAssignableFrom<Long>() -> cell.numericCellValue.toLong()
+                            typeOverride.isAssignableFrom<Number>() -> cell.numericCellValue
+                            else -> throw Py.TypeError("Unable to retrieve R${cell.row.rowNum + 1}C${cell.columnIndex + 1} as a ${typeOverride.simpleName}")
+                        }
+                    } else {
+                        when (cell?.cellType) {
+                            CellType.NUMERIC -> {
+                                if (DateUtil.isCellDateFormatted(cell)) {
+                                    if (!typesSet) {
                                         columnTypes.add(Date::class.java)
                                     }
-                                    
-                                }
-                                val tempCell = cell.dateCellValue                       
-                                if(stringColumn){
-                                    tempCell.toString()
-                                }
-                                else{
-                                    tempCell
-                                }
-                            } else {
-                                val numericCellValue = cell.numericCellValue
-                                if (BigDecimal(numericCellValue).scale() == 0) {
-                                    if (!typesSet) {
-                                        if(stringColumn){
-                                            columnTypes.add(String::class.java)
-                                        }
-                                        else{
-                                            columnTypes.add(Int::class.javaObjectType)
-                                        }       
-                                    }
-                                    if(stringColumn){
-                                        numericCellValue.toInt().toString()
-                                    }
-                                    else{
-                                        numericCellValue.toInt()
-                                    }                  
+                                    cell.dateCellValue
                                 } else {
-                                    if (!typesSet) {
-                                        if(stringColumn){
-                                            columnTypes.add(String::class.java)
+                                    val numericCellValue = cell.numericCellValue
+                                    if (BigDecimal(numericCellValue).scale() == 0) {
+                                        if (!typesSet) {
+                                            columnTypes.add(Int::class.javaObjectType)
                                         }
-                                        else{
+                                        numericCellValue.toInt()
+                                    } else {
+                                        if (!typesSet) {
                                             columnTypes.add(Double::class.javaObjectType)
-                                        }     
-                                    }
-                                    if(stringColumn){
-                                        numericCellValue.toString()
-                                    }
-                                    else{
+                                        }
                                         numericCellValue
                                     }
                                 }
                             }
-                        }
 
-                        else if(cellType == "STRING"){
-                            if (!typesSet) {
-                                columnTypes.add(String::class.java)
-                            }
-                            cell.stringCellValue
-                        }
-
-                        else if(cellType == "BOOLEAN"){
-                            if (!typesSet) {
-                                columnTypes.add(Boolean::class.javaObjectType)
-                            }
-                            if(stringColumn){
-                                cell.booleanCellValue.toString()
-                            }
-                            else{
-                                cell.booleanCellValue
-                            }                         
-                        }
-
-                        else{
-                            if (!typesSet) {
-                                if (stringColumn) {
+                            CellType.STRING -> {
+                                if (!typesSet) {
                                     columnTypes.add(String::class.java)
                                 }
-                                else{
+                                cell.stringCellValue
+                            }
+
+                            CellType.BOOLEAN -> {
+                                if (!typesSet) {
+                                    columnTypes.add(Boolean::class.javaObjectType)
+                                }
+                                cell.booleanCellValue
+                            }
+
+                            else -> {
+                                if (!typesSet) {
                                     columnTypes.add(Any::class.java)
                                 }
-                            }
-                            if (stringColumn) {
-                                null.toString()
-                            }
-                            else{
                                 null
                             }
                         }
@@ -519,8 +477,6 @@ object DatasetExtensions {
         }
     }
 
-    private val classNameResolver = ClassNameResolver.createBasic()
-
     @ScriptFunction(docBundlePrefix = "DatasetExtensions")
     @KeywordArgs(
         names = ["**columns"],
@@ -539,7 +495,9 @@ object DatasetExtensions {
         return DatasetBuilder.newBuilder().colNames(colNames).colTypes(colTypes)
     }
 
-    fun PyObject.asJavaClass(): Class<*>? = when (this) {
+    private val classNameResolver = ClassNameResolver.createBasic()
+
+    private fun PyObject.asJavaClass(): Class<*>? = when (this) {
         is PyBaseString -> classNameResolver.classForName(asString())
         !is PyType -> throw ClassCastException()
         PyString.TYPE, PyUnicode.TYPE -> String::class.java

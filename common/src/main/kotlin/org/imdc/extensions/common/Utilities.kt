@@ -53,3 +53,5 @@ inline fun <reified T> BundleUtil.addPropertyBundle() {
 inline fun <reified T : Annotation> Method.getAnnotation(): T? {
     return getAnnotation(T::class.java)
 }
+
+inline fun <reified T> Class<*>.isAssignableFrom(): Boolean = this.isAssignableFrom(T::class.java)
