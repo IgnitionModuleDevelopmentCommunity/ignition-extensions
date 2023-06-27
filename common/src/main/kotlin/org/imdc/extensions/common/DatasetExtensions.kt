@@ -497,7 +497,7 @@ object DatasetExtensions {
 
     private val classNameResolver = ClassNameResolver.createBasic()
 
-    private fun PyObject.asJavaClass(): Class<*>? = when (this) {
+    internal fun PyObject.asJavaClass(): Class<*>? = when (this) {
         is PyBaseString -> classNameResolver.classForName(asString())
         !is PyType -> throw ClassCastException()
         PyString.TYPE, PyUnicode.TYPE -> String::class.java
