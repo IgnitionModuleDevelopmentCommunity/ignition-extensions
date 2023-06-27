@@ -244,13 +244,13 @@ object DatasetExtensions {
                     .mapNotNull { row ->
                         dataset.getValueAt(row, column)
                     }
-                    .toTypedArray()
+                    .toList()
             } else {
                 (0 until dataset.rowCount)
                     .map { row ->
                         dataset.getValueAt(row, column)
                     }
-                    .toTypedArray()
+                    .toList()
             }
             pyDict[dataset.columnNames[column]] = rowArray
         }
