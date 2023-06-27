@@ -17,6 +17,7 @@ import org.apache.poi.ss.usermodel.WorkbookFactory
 import org.python.core.Py
 import org.python.core.PyBaseString
 import org.python.core.PyBoolean
+import org.python.core.PyDictionary
 import org.python.core.PyFloat
 import org.python.core.PyFunction
 import org.python.core.PyInteger
@@ -220,8 +221,47 @@ object DatasetExtensions {
     @Suppress("unused")
     @ScriptFunction(docBundlePrefix = "DatasetExtensions")
     @KeywordArgs(
+        names = ["dataset", "filterNull"],
+        types = [Dataset::class, Boolean::class],
+    )
+    fun toDict(args: Array<PyObject>, keywords: Array<String>): PyDictionary {
+        val parsedArgs = PyArgParser.parseArgs(
+            args,
+            keywords,
+            arrayOf(
+                "dataset",
+                "filterNull",
+            ),
+            Array(2) { Any::class.java },
+            "toDict",
+        )
+        val dataset = parsedArgs.requirePyObject("dataset").toJava<Dataset>()
+        val filterNull = parsedArgs.getBoolean("filterNull").orElse(false)
+        val pyDict = PyDictionary()
+        for (column in 0 until dataset.columnCount) {
+            val rowArray = if (filterNull) {
+                (0 until dataset.rowCount)
+                    .mapNotNull { row ->
+                        dataset.getValueAt(row, column)
+                    }
+                    .toTypedArray()
+            } else {
+                (0 until dataset.rowCount)
+                    .map { row ->
+                        dataset.getValueAt(row, column)
+                    }
+                    .toTypedArray()
+            }
+            pyDict[dataset.columnNames[column]] = rowArray
+        }
+        return pyDict
+    }
+
+    @Suppress("unused")
+    @ScriptFunction(docBundlePrefix = "DatasetExtensions")
+    @KeywordArgs(
         names = ["input", "headerRow", "sheetNumber", "firstRow", "lastRow", "firstColumn", "lastColumn", "stringColumns"],
-        types = [ByteArray::class, Integer::class, Integer::class, Integer::class, Integer::class, Integer::class, Integer::class, Array<Integer>::class],
+        types = [ByteArray::class, Int::class, Int::class, Int::class, Int::class, Int::class, Int::class, Array<Int>::class],
     )
     fun fromExcel(args: Array<PyObject>, keywords: Array<String>): Dataset {
         val parsedArgs = PyArgParser.parseArgs(
@@ -308,12 +348,7 @@ object DatasetExtensions {
                                 columnTypes.add(Any::class.java)
                             }
                         }
-                        if (stringColumn) {
-                            null.toString()
-                        }
-                        else{
-                            null
-                        } 
+                        null
                     }
                     else{
                         val cellType = cell.getCellType().toString()
