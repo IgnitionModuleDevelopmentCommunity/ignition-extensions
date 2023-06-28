@@ -8,6 +8,7 @@ import io.kotest.matchers.shouldBe
 import org.imdc.extensions.common.DatasetExtensions.printDataset
 import org.python.core.Py
 import org.python.core.PyDictionary
+import org.python.core.PyStringMap
 import java.awt.Color
 import java.util.Date
 import kotlin.io.path.createTempFile
@@ -42,7 +43,7 @@ class DatasetExtensionsTests : JythonTest(
         }
         globals["xlsxFile2"] = tempXlsx2.toString()
         globals["xlsxBytes2"] = excelSample2
-        val pyDictionary = PyDictionary()
+        val pyDictionary = PyStringMap()
 
         // Add key-value pairs to the dictionary
         pyDictionary["Country"] = "String"
