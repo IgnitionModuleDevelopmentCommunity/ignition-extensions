@@ -257,7 +257,7 @@ object DatasetExtensions {
     @ScriptFunction(docBundlePrefix = "DatasetExtensions")
     @KeywordArgs(
         names = ["input", "headerRow", "sheetNumber", "firstRow", "lastRow", "firstColumn", "lastColumn", "typeOverrides"],
-        types = [ByteArray::class, Int::class, Int::class, Int::class, Int::class, Int::class, Int::class, PyDictionary::class],
+        types = [ByteArray::class, Int::class, Int::class, Int::class, Int::class, Int::class, Int::class, PyStringMap::class],
     )
     fun fromExcel(args: Array<PyObject>, keywords: Array<String>): Dataset {
         val parsedArgs = PyArgParser.parseArgs(
@@ -280,8 +280,9 @@ object DatasetExtensions {
         val typeOverrides = parsedArgs.getPyObject("typeOverrides")
             .map(PyUtilities::streamEntries)
             .map { stream ->
-                stream.asSequence().associate { (key, value) ->
-                    key.asIndex() to value.asJavaClass()
+                var index = 0
+                stream.asSequence().associate { (_, value) ->
+                    index++ to value.asJavaClass()
                 }
             }.getOrElse { emptyMap() }
 
