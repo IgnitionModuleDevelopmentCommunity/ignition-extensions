@@ -279,9 +279,8 @@ object DatasetExtensions {
         val typeOverrides = parsedArgs.getPyObject("typeOverrides")
             .map(PyUtilities::streamEntries)
             .map { stream ->
-                var index = 0
-                stream.asSequence().associate { (_, value) ->
-                    index++ to value.asJavaClass()
+                stream.asSequence().associate { (pyKey, value) ->
+                    pyKey.asIndex() to value.asJavaClass()
                 }
             }.getOrElse { emptyMap() }
 
@@ -338,68 +337,65 @@ object DatasetExtensions {
 
                 val row = sheet.getRow(i)
 
-                val rowValues = Array<Any?>(columnCount) { j ->
+                val rowValues = Array(columnCount) { j ->
                     val cell: Cell? = row.getCell(j + firstColumn)
+
+                    val actualValue: Any? = when (cell?.cellType) {
+                        CellType.NUMERIC -> {
+                            if (DateUtil.isCellDateFormatted(cell)) {
+                                if (!typesSet) {
+                                    columnTypes.add(Date::class.java)
+                                }
+                                cell.dateCellValue
+                            } else {
+                                val numericCellValue = cell.numericCellValue
+                                if (BigDecimal(numericCellValue).scale() == 0) {
+                                    if (!typesSet) {
+                                        columnTypes.add(Int::class.javaObjectType)
+                                    }
+                                    numericCellValue.toInt()
+                                } else {
+                                    if (!typesSet) {
+                                        columnTypes.add(Double::class.javaObjectType)
+                                    }
+                                    numericCellValue
+                                }
+                            }
+                        }
+
+                        CellType.STRING -> {
+                            if (!typesSet) {
+                                columnTypes.add(String::class.java)
+                            }
+                            cell.stringCellValue
+                        }
+
+                        CellType.BOOLEAN -> {
+                            if (!typesSet) {
+                                columnTypes.add(Boolean::class.javaObjectType)
+                            }
+                            cell.booleanCellValue
+                        }
+
+                        else -> {
+                            if (!typesSet) {
+                                columnTypes.add(Any::class.java)
+                            }
+                            null
+                        }
+                    }
                     val typeOverride = typeOverrides[j]
                     if (typeOverride != null) {
                         if (!typesSet) {
-                            columnTypes.add(typeOverride)
+                            columnTypes[j] = typeOverride
                         }
-                        when {
-                            cell == null -> null
-                            typeOverride.isAssignableFrom<Date>() -> cell.dateCellValue
-                            typeOverride.isAssignableFrom<Boolean>() -> cell.booleanCellValue
-                            typeOverride.isAssignableFrom<String>() -> cell.stringCellValue
-                            typeOverride.isAssignableFrom<Int>() -> cell.numericCellValue.toInt()
-                            typeOverride.isAssignableFrom<Long>() -> cell.numericCellValue.toLong()
-                            typeOverride.isAssignableFrom<Number>() -> cell.numericCellValue
-                            else -> throw Py.TypeError("Unable to retrieve R${cell.row.rowNum + 1}C${cell.columnIndex + 1} as a ${typeOverride.simpleName}")
+                        try {
+                            TypeUtilities.coerceGeneric(actualValue, typeOverride)
+                        } catch (e: ClassCastException) {
+                            throw Py.TypeError(e.message)
                         }
                     } else {
-                        when (cell?.cellType) {
-                            CellType.NUMERIC -> {
-                                if (DateUtil.isCellDateFormatted(cell)) {
-                                    if (!typesSet) {
-                                        columnTypes.add(Date::class.java)
-                                    }
-                                    cell.dateCellValue
-                                } else {
-                                    val numericCellValue = cell.numericCellValue
-                                    if (BigDecimal(numericCellValue).scale() == 0) {
-                                        if (!typesSet) {
-                                            columnTypes.add(Int::class.javaObjectType)
-                                        }
-                                        numericCellValue.toInt()
-                                    } else {
-                                        if (!typesSet) {
-                                            columnTypes.add(Double::class.javaObjectType)
-                                        }
-                                        numericCellValue
-                                    }
-                                }
-                            }
-
-                            CellType.STRING -> {
-                                if (!typesSet) {
-                                    columnTypes.add(String::class.java)
-                                }
-                                cell.stringCellValue
-                            }
-
-                            CellType.BOOLEAN -> {
-                                if (!typesSet) {
-                                    columnTypes.add(Boolean::class.javaObjectType)
-                                }
-                                cell.booleanCellValue
-                            }
-
-                            else -> {
-                                if (!typesSet) {
-                                    columnTypes.add(Any::class.java)
-                                }
-                                null
-                            }
-                        }
+                        actualValue
                     }
                 }
 

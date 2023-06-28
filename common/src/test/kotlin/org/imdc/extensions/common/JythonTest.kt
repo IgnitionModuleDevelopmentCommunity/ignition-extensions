@@ -19,7 +19,7 @@ import org.python.core.PyStringMap
 import org.python.core.PyType
 
 @Suppress("PyInterpreter")
-abstract class JythonTest(init: (globals: PyStringMap) -> Unit) : FunSpec() {
+abstract class JythonTest(init: FunSpec.(globals: PyStringMap) -> Unit) : FunSpec() {
     protected var globals: PyStringMap = PyStringMap()
 
     init {
@@ -27,7 +27,7 @@ abstract class JythonTest(init: (globals: PyStringMap) -> Unit) : FunSpec() {
             object : BeforeEachListener {
                 override suspend fun beforeEach(testCase: TestCase) {
                     globals.clear()
-                    init(globals)
+                    init(this@JythonTest, globals)
                 }
             },
         )
