@@ -7,6 +7,7 @@ import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import org.imdc.extensions.common.DatasetExtensions.printDataset
 import org.python.core.Py
+import org.python.core.PyDictionary
 import java.awt.Color
 import java.util.Date
 import kotlin.io.path.createTempFile
@@ -32,6 +33,22 @@ class DatasetExtensionsTests : JythonTest(
         }
         globals["xlsxBytes"] = excelSample
         globals["xlsxFile"] = tempXlsx.toString()
+
+        val excelSample2 =
+            DatasetExtensionsTests::class.java.getResourceAsStream("sample2.xlsx")!!.readAllBytes()
+        val tempXlsx2 = createTempFile(suffix = "xlsx").also {
+            it.writeBytes(excelSample2)
+            it.toFile().deleteOnExit()
+        }
+        globals["xlsxFile2"] = tempXlsx2.toString()
+        globals["xlsxBytes2"] = excelSample2
+        val pyDictionary = PyDictionary()
+
+        // Add key-value pairs to the dictionary
+        pyDictionary["Country"] = "String"
+        pyDictionary["Discount Band"] = "String"
+
+        globals["pyDictionary"] = pyDictionary
 
         val xlsSample =
             DatasetExtensionsTests::class.java.getResourceAsStream("sample.xls")!!.readAllBytes()
@@ -217,6 +234,30 @@ class DatasetExtensionsTests : JythonTest(
             }
             test("With headers") {
                 eval<Dataset>("utils.fromExcel(xlsxBytes, headerRow=0)").asClue {
+                    it.rowCount shouldBe 99
+                    it.columnCount shouldBe 16
+                    it.columnNames shouldBe listOf(
+                        "Segment",
+                        "Country",
+                        "Product",
+                        "Discount Band",
+                        "Units Sold",
+                        "Manufacturing Price",
+                        "Sale Price",
+                        "Gross Sales",
+                        "Discounts",
+                        "Sales",
+                        "COGS",
+                        "Profit",
+                        "Date",
+                        "Month Number",
+                        "Month Name",
+                        "Year",
+                    )
+                }
+            }
+            test("With String OverRide") {
+                eval<Dataset>("utils.fromExcel(xlsxBytes2, typeOverrides=pyDictionary)").asClue {
                     it.rowCount shouldBe 99
                     it.columnCount shouldBe 16
                     it.columnNames shouldBe listOf(

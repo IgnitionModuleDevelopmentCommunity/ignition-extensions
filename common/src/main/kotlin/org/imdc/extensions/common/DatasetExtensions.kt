@@ -277,7 +277,7 @@ object DatasetExtensions {
             "fromExcel",
         )
 
-        val typeOverrides = parsedArgs.getPyObject("typeColumns")
+        val typeOverrides = parsedArgs.getPyObject("typeOverrides")
             .map(PyUtilities::streamEntries)
             .map { stream ->
                 stream.asSequence().associate { (key, value) ->
