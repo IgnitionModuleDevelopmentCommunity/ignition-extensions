@@ -16,7 +16,6 @@ import org.apache.poi.ss.usermodel.WorkbookFactory
 import org.python.core.Py
 import org.python.core.PyBaseString
 import org.python.core.PyBoolean
-import org.python.core.PyDictionary
 import org.python.core.PyFloat
 import org.python.core.PyFunction
 import org.python.core.PyInteger
