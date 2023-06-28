@@ -257,7 +257,7 @@ class DatasetExtensionsTests : JythonTest(
                 }
             }
             test("With String OverRide") {
-                eval<Dataset>("utils.fromExcel(xlsxBytes2, typeOverrides=pyDictionary)").asClue {
+                eval<Dataset>("utils.fromExcel(xlsxBytes2, headerRow=0, typeOverrides=pyDictionary)").asClue {
                     it.rowCount shouldBe 99
                     it.columnCount shouldBe 16
                     it.columnNames shouldBe listOf(
