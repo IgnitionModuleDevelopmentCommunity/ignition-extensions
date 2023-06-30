@@ -91,46 +91,43 @@ object DatasetExtensions {
         val dataset2 = parsedArgs.requirePyObject("dataset2").toJava<Dataset>()
         val column = parsedArgs.requirePyObject("columnIndex").toJava<Int>()
         val column2 = parsedArgs.requirePyObject("columnIndex2").toJava<Int>()
-        // Left Joins dataset to dataset2 on column = column2
-        val columnName = List<String>(dataset.columnCount) { col ->
-            dataset.columnNames[col]
-        }
-        val columnName2 = List<String>(dataset2.columnCount) { col ->
-            dataset2.columnNames[col]
-        }
+
+        val columnName = dataset.columnNames.toList()
+        val columnName2 = dataset2.columnNames.toList()
         val combinedColumnName = columnName + columnName2
-        val columnType = List<Class<*>>(dataset.columnCount) { col ->
-            dataset.columnTypes[col]
-        }
-        val columnType2 = List<Class<*>>(dataset2.columnCount) { col ->
-            dataset2.columnTypes[col]
-        }
+
+        val columnType = dataset.columnTypes.toList()
+        val columnType2 = dataset2.columnTypes.toList()
         val combinedColumnType = columnType + columnType2
-        val builder = DatasetBuilder.newBuilder().colNames(combinedColumnName).colTypes(combinedColumnType)
+
+        val builder = DatasetBuilder.newBuilder()
+            .colNames(combinedColumnName)
+            .colTypes(combinedColumnType)
 
         for (row in dataset.rowIndices) {
-            var found = false
-            val listToAppend = ArrayList<Any?>()
-            var row2: Int? = null // Declare row2 outside the loop so it can be used later
-            for (rowIndex in dataset2.rowIndices) {
+            val listToAppend = Array<Any?>(combinedColumnName.size) { null }
+            var row2: Int? = null
+
+            dataset2.rowIndices.forEachIndexed { rowIndex, _ ->
                 if (dataset[row, column] == dataset2[rowIndex, column2]) {
-                    found = true
                     row2 = rowIndex
-                    break
+                    return@forEachIndexed
                 }
             }
-            for (col in 0 until dataset.columnCount) {
-                listToAppend.add(dataset[row, col])
+
+            dataset.columnIndices.forEachIndexed { colIndex, _ ->
+                listToAppend[colIndex] = dataset[row, colIndex]
             }
-            for (col in 0 until dataset2.columnCount) {
-                if (found) {
-                    listToAppend.add(dataset2[row2!!, col])
-                } else {
-                    listToAppend.add(null)
+
+            if (row2 != null) {
+                dataset2.columnIndices.forEachIndexed { colIndex, _ ->
+                    listToAppend[dataset.columnCount + colIndex] = dataset2[row2!!, colIndex]
                 }
             }
-            builder.addRow(*listToAppend.toTypedArray())
+
+            builder.addRow(*listToAppend.copyOf(combinedColumnName.size))
         }
+
         return builder.build()
     }
 
