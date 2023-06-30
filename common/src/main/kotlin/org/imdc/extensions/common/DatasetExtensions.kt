@@ -76,6 +76,65 @@ object DatasetExtensions {
     @Suppress("unused")
     @ScriptFunction(docBundlePrefix = "DatasetExtensions")
     @KeywordArgs(
+        names = ["dataset", "dataset2", "columnIndex", "columnIndex2"],
+        types = [Dataset::class, Dataset::class, PyBaseString::class, PyBaseString::class],
+    )
+    fun leftJoin(args: Array<PyObject>, keywords: Array<String>): Dataset? {
+        val parsedArgs = PyArgParser.parseArgs(
+            args,
+            keywords,
+            arrayOf("dataset", "dataset2", "columnIndex", "columnIndex2"),
+            arrayOf(Dataset::class.java, Dataset::class.java, Int::class.java, Int::class.java),
+            "leftJoin",
+        )
+        val dataset = parsedArgs.requirePyObject("dataset").toJava<Dataset>()
+        val dataset2 = parsedArgs.requirePyObject("dataset2").toJava<Dataset>()
+        val column = parsedArgs.requirePyObject("columnIndex").toJava<Int>()
+        val column2 = parsedArgs.requirePyObject("columnIndex2").toJava<Int>()
+        // Left Joins dataset to dataset2 on column = column2
+        val columnName = List<String>(dataset.columnCount) { col ->
+            dataset.columnNames[col]
+        }
+        val columnName2 = List<String>(dataset2.columnCount) { col ->
+            dataset2.columnNames[col]
+        }
+        val combinedColumnName = columnName + columnName2
+        val columnType = List<Class<*>>(dataset.columnCount) { col ->
+            dataset.columnTypes[col]
+        }
+        val columnType2 = List<Class<*>>(dataset2.columnCount) { col ->
+            dataset2.columnTypes[col]
+        }
+        val combinedColumnType = columnType + columnType2
+        val builder = DatasetBuilder.newBuilder().colNames(combinedColumnName).colTypes(combinedColumnType)
+
+        for (row in dataset.rowIndices) {
+            var found = false
+            val listToAppend = ArrayList<Any?>()
+            for (row2 in dataset2.rowIndices) {
+                if (dataset[row, column] == dataset2[row2, column2]) {
+                    found = true
+                    break
+                }
+            }
+            for (col in 0 until dataset.columnCount) {
+                listToAppend.add(dataset[row, col])
+            }
+            for (col in 0 until dataset2.columnCount) {
+                if (found) {
+                    listToAppend.add(dataset2[row, col])
+                } else {
+                    listToAppend.add(null)
+                }
+            }
+            builder.addRow(*listToAppend.toTypedArray())
+        }
+        return builder.build()
+    }
+
+    @Suppress("unused")
+    @ScriptFunction(docBundlePrefix = "DatasetExtensions")
+    @KeywordArgs(
         names = ["dataset", "filter"],
         types = [Dataset::class, PyFunction::class],
     )

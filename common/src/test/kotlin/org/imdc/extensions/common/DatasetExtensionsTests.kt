@@ -22,6 +22,12 @@ class DatasetExtensionsTests : JythonTest(
             .addRow(1, 3.14, "pi")
             .addRow(2, 6.28, "tau")
             .build()
+        globals["dataset2"] = DatasetBuilder.newBuilder()
+            .colNames("a", "b2", "c2")
+            .colTypes(Int::class.javaObjectType, Double::class.javaObjectType, String::class.java)
+            .addRow(1, 3.1415, "pi2")
+            .addRow(2, 56, "tau2")
+            .build()
 
         val excelSample =
             DatasetExtensionsTests::class.java.getResourceAsStream("sample.xlsx")!!.readAllBytes()
@@ -103,6 +109,28 @@ class DatasetExtensionsTests : JythonTest(
             }
         }
 
+        context("Left Join test") {
+            test("Left Join") {
+                eval<Dataset>("utils.leftJoin(dataset, dataset2, 0, 0)").asClue {
+                    it.columnNames shouldBe listOf("a", "b", "c", "a", "b2", "c2")
+                    it.columnTypes shouldBe listOf(
+                        Int::class.javaObjectType,
+                        Double::class.javaObjectType,
+                        String::class.java,
+                        Int::class.javaObjectType,
+                        Double::class.javaObjectType,
+                        String::class.java,
+                    )
+                    it.rowCount shouldBe 2
+                    it.getColumnAsList(0) shouldBe listOf(1, 2)
+                    it.getColumnAsList(1) shouldBe listOf(3.14, 6.28)
+                    it.getColumnAsList(2) shouldBe listOf("pi", "tau")
+                    it.getColumnAsList(3) shouldBe listOf(1, 2)
+                    it.getColumnAsList(4) shouldBe listOf(3.1415, 56.0)
+                    it.getColumnAsList(5) shouldBe listOf("pi2", "tau2")
+                }
+            }
+        }
         context("Filter tests") {
             test("Constant filter") {
                 eval<Dataset>("utils.filter(dataset, lambda **kwargs: False)").asClue {
