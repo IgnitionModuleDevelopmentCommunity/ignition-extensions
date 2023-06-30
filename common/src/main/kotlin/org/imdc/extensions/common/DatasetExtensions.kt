@@ -111,9 +111,11 @@ object DatasetExtensions {
         for (row in dataset.rowIndices) {
             var found = false
             val listToAppend = ArrayList<Any?>()
-            for (row2 in dataset2.rowIndices) {
-                if (dataset[row, column] == dataset2[row2, column2]) {
+            var row2: Int? = null // Declare row2 outside the loop so it can be used later
+            for (rowIndex in dataset2.rowIndices) {
+                if (dataset[row, column] == dataset2[rowIndex, column2]) {
                     found = true
+                    row2 = rowIndex
                     break
                 }
             }
@@ -122,7 +124,7 @@ object DatasetExtensions {
             }
             for (col in 0 until dataset2.columnCount) {
                 if (found) {
-                    listToAppend.add(dataset2[row, col])
+                    listToAppend.add(dataset2[row2!!, col])
                 } else {
                     listToAppend.add(null)
                 }
