@@ -105,7 +105,7 @@ object DatasetExtensions {
             .colTypes(combinedColumnType)
 
         for (row in dataset.rowIndices) {
-            val listToAppend = Array<Any?>(combinedColumnName.size) { null }
+            val listToAppend = arrayOfNulls<Any?>(combinedColumnName.size)
             var row2: Int? = null
 
             dataset2.rowIndices.forEachIndexed { rowIndex, _ ->
@@ -119,13 +119,13 @@ object DatasetExtensions {
                 listToAppend[colIndex] = dataset[row, colIndex]
             }
 
-            if (row2 != null) {
+            row2?.let { r2 ->
                 dataset2.columnIndices.forEachIndexed { colIndex, _ ->
-                    listToAppend[dataset.columnCount + colIndex] = dataset2[row2!!, colIndex]
+                    listToAppend[dataset.columnCount + colIndex] = dataset2[r2, colIndex]
                 }
             }
 
-            builder.addRow(*listToAppend.copyOf(combinedColumnName.size))
+            builder.addRow(*listToAppend)
         }
 
         return builder.build()
