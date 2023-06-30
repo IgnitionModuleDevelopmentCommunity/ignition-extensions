@@ -1,7 +1,7 @@
 [versions]
 java = "11"
 kotlin = "1.8.22"
-kotest = "5.6.1"
+kotest = "5.6.2"
 ignition = "8.1.0"
 
 [plugins]
