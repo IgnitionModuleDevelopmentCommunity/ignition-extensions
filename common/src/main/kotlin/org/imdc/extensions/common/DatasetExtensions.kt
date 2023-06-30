@@ -77,7 +77,7 @@ object DatasetExtensions {
     @ScriptFunction(docBundlePrefix = "DatasetExtensions")
     @KeywordArgs(
         names = ["dataset", "dataset2", "columnIndex", "columnIndex2"],
-        types = [Dataset::class, Dataset::class, PyBaseString::class, PyBaseString::class],
+        types = [Dataset::class, Dataset::class, Int::class, Int::class],
     )
     fun leftJoin(args: Array<PyObject>, keywords: Array<String>): Dataset? {
         val parsedArgs = PyArgParser.parseArgs(
