@@ -3,6 +3,7 @@ package org.imdc.extensions.common
 import com.inductiveautomation.ignition.common.BasicDataset
 import com.inductiveautomation.ignition.common.Dataset
 import com.inductiveautomation.ignition.common.util.DatasetBuilder
+import io.kotest.assertions.asClue
 import io.kotest.assertions.withClue
 import io.kotest.engine.spec.tempfile
 import io.kotest.matchers.shouldBe
@@ -16,6 +17,32 @@ class DatasetExtensionsTests : JythonTest(
     { globals ->
         globals["utils"] = DatasetExtensions
         globals["builder"] = DatasetBuilder.newBuilder()
+        globals["outerJoin1"] = DatasetBuilder.newBuilder()
+            .colNames("EmpID", "EmpName", "City", "Designation")
+            .colTypes(Int::class.javaObjectType, String::class.java, String::class.java, String::class.java)
+            .addRow(1, "Charlotte Robinson", "Chicago", "Consultant")
+            .addRow(2, "Madison Phillips", "Dallas", "Senior Analyst")
+            .addRow(3, "Emma Hernandez", "Phoenix", "Senior Analyst")
+            .addRow(4, "Samantha Sanchez", "San Diego", "Principal Conultant")
+            .addRow(5, "Sadie Ward", "San Antonio", "Consultant")
+            .addRow(6, "Savannah Perez", "New York", "Principal Conultant")
+            .addRow(7, "Victoria Gray", "Los Angeles", "Assistant")
+            .addRow(8, "Alyssa Lewis", "Houston", "Consultant")
+            .addRow(9, "Anna Lee", "San Jose", "Principal Conultant")
+            .addRow(10, "Riley Hall", "Philadelphia", "Senior Analyst")
+            .build()
+        globals["outerJoin2"] = DatasetBuilder.newBuilder()
+            .colNames("EmpID", "Department_ID", "DepartmentName")
+            .colTypes(Int::class.javaObjectType, Int::class.javaObjectType, String::class.java)
+            .addRow(1, 0, "Executive")
+            .addRow(2, 1, "Document Control")
+            .addRow(3, 2, "Finance")
+            .addRow(4, 3, "Engineering")
+            .addRow(5, 4, "Facilities and Maintenance")
+            .addRow(6, 2, "Finance")
+            .addRow(10, 4, "Facilities and Maintenance")
+            .build()
+
         globals["dataset"] = DatasetBuilder.newBuilder()
             .colNames("a", "b", "c")
             .colTypes(Int::class.javaObjectType, Double::class.javaObjectType, String::class.java)
@@ -28,6 +55,12 @@ class DatasetExtensionsTests : JythonTest(
             .addRow(1, 3.1415, "pi2")
             .addRow(2, 56, "tau2")
             .build()
+
+        val tempArray: Array<Array<Int>> = arrayOf(
+            arrayOf(0, 1, 2),
+            arrayOf(3),
+        )
+        globals["splitAt"] = tempArray
 
         val excelSample =
             DatasetExtensionsTests::class.java.getResourceAsStream("sample.xlsx")!!.readAllBytes()
@@ -131,6 +164,84 @@ class DatasetExtensionsTests : JythonTest(
                 }
             }
         }
+
+        // https://www.sqlshack.com/sql-outer-join-overview-and-examples/
+        context("Outer Join test") {
+            test("Outer Join") {
+                eval<Dataset>("utils.outerJoin(outerJoin1, outerJoin2, 0, 0)").asClue {
+                    it.columnNames shouldBe listOf("EmpID", "EmpName", "City", "Designation", "EmpID", "Department_ID", "DepartmentName")
+                    it.columnTypes shouldBe listOf(
+                        Int::class.javaObjectType,
+                        String::class.java,
+                        String::class.java,
+                        String::class.java,
+                        Int::class.javaObjectType,
+                        Int::class.javaObjectType,
+                        String::class.java,
+                    )
+                    it.getColumnAsList(6) shouldBe listOf("Executive", "Document Control", "Finance", "Engineering", "Facilities and Maintenance", "Finance", null, null, null, "Facilities and Maintenance")
+                    it.rowCount shouldBe 10
+                }
+            }
+        }
+
+        context("Right Join test") {
+            test("Right Join") {
+                eval<Dataset>("utils.rightJoin(outerJoin1, outerJoin2, 0, 0)").asClue {
+                    it.columnNames shouldBe listOf("EmpID", "EmpName", "City", "Designation", "EmpID", "Department_ID", "DepartmentName")
+                    it.columnTypes shouldBe listOf(
+                        Int::class.javaObjectType,
+                        String::class.java,
+                        String::class.java,
+                        String::class.java,
+                        Int::class.javaObjectType,
+                        Int::class.javaObjectType,
+                        String::class.java,
+                    )
+                    it.getColumnAsList(5) shouldBe listOf(0, 1, 2, 3, 4, 2, 4)
+                    it.rowCount shouldBe 7
+                }
+            }
+        }
+
+        context("Inner Join test") {
+            test("Inner Join") {
+                eval<Dataset>("utils.innerJoin(outerJoin1, outerJoin2, 0, 0)").asClue {
+                    it.columnNames shouldBe listOf("EmpID", "EmpName", "City", "Designation", "EmpID", "Department_ID", "DepartmentName")
+                    it.columnTypes shouldBe listOf(
+                        Int::class.javaObjectType,
+                        String::class.java,
+                        String::class.java,
+                        String::class.java,
+                        Int::class.javaObjectType,
+                        Int::class.javaObjectType,
+                        String::class.java,
+                    )
+                    it.getColumnAsList(5) shouldBe listOf(0, 1, 2, 3, 4, 2, 4)
+                    it.rowCount shouldBe 7
+                }
+            }
+        }
+
+        context("Dataset Splitter") {
+            test("Split Dataset") {
+                eval<Array<Dataset>>("utils.splitter(outerJoin1, splitAt)").asClue {
+                    it.get(0).columnNames shouldBe listOf("EmpID", "EmpName", "City")
+                    it.get(0).columnTypes shouldBe listOf(
+                        Int::class.javaObjectType,
+                        String::class.java,
+                        String::class.java,
+                    )
+                    it.get(0).rowCount shouldBe 10
+                    it.get(1).columnNames shouldBe listOf("Designation")
+                    it.get(1).columnTypes shouldBe listOf(
+                        String::class.java,
+                    )
+                    it.get(1).rowCount shouldBe 10
+                }
+            }
+        }
+
         context("Filter tests") {
             test("Constant filter") {
                 eval<Dataset>("utils.filter(dataset, lambda **kwargs: False)").asClue {
