@@ -3,6 +3,7 @@ package org.imdc.extensions.common
 import com.inductiveautomation.ignition.common.BasicDataset
 import com.inductiveautomation.ignition.common.Dataset
 import com.inductiveautomation.ignition.common.util.DatasetBuilder
+import io.kotest.assertions.asClue
 import io.kotest.assertions.withClue
 import io.kotest.engine.spec.tempfile
 import io.kotest.matchers.shouldBe
@@ -99,6 +100,15 @@ class DatasetExtensionsTests : JythonTest(
                     it.getColumnAsList(0) shouldBe listOf(2, 4)
                     it.getColumnAsList(1) shouldBe listOf(6.28, 12.56)
                     it.getColumnAsList(2) shouldBe listOf("pipi", "tautau")
+                }
+            }
+        }
+
+        context("Insert Dataset") {
+            test("Dataset to String") {
+                eval<List<Any>>("utils.insertDataset(dataset, 'testing')").asClue {
+                    it[0] shouldBe "INSERT INTO testing (a, b, c) VALUES (?, ?, ?), (?, ?, ?)"
+                    it[1] shouldBe listOf(1, 3.14, "pi", 2, 6.28, "tau")
                 }
             }
         }
