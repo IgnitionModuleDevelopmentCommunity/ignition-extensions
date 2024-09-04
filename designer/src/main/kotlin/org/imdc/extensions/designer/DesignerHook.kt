@@ -13,6 +13,7 @@ import org.imdc.extensions.common.UtilitiesExtensions
 import org.imdc.extensions.common.addPropertyBundle
 import org.imdc.extensions.common.expressions.IsAvailableFunction
 import org.imdc.extensions.common.expressions.LogicalPredicate.Companion.registerLogicFunctions
+import org.imdc.extensions.common.expressions.RandomUUIDFunction
 
 @Suppress("unused")
 class DesignerHook : AbstractDesignerModuleHook() {
@@ -50,6 +51,11 @@ class DesignerHook : AbstractDesignerModuleHook() {
                 IsAvailableFunction(),
             )
             registerLogicFunctions()
+            addFunction(
+                RandomUUIDFunction.NAME,
+                RandomUUIDFunction.CATEGORY,
+                RandomUUIDFunction(),
+            )
         }
     }
 }

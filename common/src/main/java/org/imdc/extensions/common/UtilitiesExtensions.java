@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -128,5 +129,10 @@ public class UtilitiesExtensions {
         public FunctionFactory getFunctionFactory() {
             return context.getExpressionFunctionFactory();
         }
+    }
+
+    @ScriptFunction(docBundlePrefix = "UtilitiesExtensions")
+    public UUID randomUUID() {
+        return UUID.randomUUID();
     }
 }

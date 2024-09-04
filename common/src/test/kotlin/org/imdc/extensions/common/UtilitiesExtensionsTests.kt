@@ -46,5 +46,10 @@ class UtilitiesExtensionsTests : JythonTest(
                 }
             }
         }
+        context("Random UUID tests") {
+            test("Unique results") {
+                eval<Boolean?>("utils.randomUUID() == utils.randomUUID()") shouldBe false
+            }
+        }
     }
 }

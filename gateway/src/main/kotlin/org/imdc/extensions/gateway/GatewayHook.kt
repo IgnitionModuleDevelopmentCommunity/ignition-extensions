@@ -13,6 +13,7 @@ import org.imdc.extensions.common.UtilitiesExtensions
 import org.imdc.extensions.common.addPropertyBundle
 import org.imdc.extensions.common.expressions.IsAvailableFunction
 import org.imdc.extensions.common.expressions.LogicalPredicate.Companion.registerLogicFunctions
+import org.imdc.extensions.common.expressions.RandomUUIDFunction
 
 @Suppress("unused")
 class GatewayHook : AbstractGatewayModuleHook() {
@@ -57,6 +58,11 @@ class GatewayHook : AbstractGatewayModuleHook() {
                 IsAvailableFunction(),
             )
             registerLogicFunctions()
+            addFunction(
+                RandomUUIDFunction.NAME,
+                RandomUUIDFunction.CATEGORY,
+                RandomUUIDFunction(),
+            )
         }
     }
 
