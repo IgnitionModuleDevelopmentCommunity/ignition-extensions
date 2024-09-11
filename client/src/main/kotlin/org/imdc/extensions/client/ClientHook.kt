@@ -13,7 +13,7 @@ import org.imdc.extensions.common.UtilitiesExtensions
 import org.imdc.extensions.common.addPropertyBundle
 import org.imdc.extensions.common.expressions.IsAvailableFunction
 import org.imdc.extensions.common.expressions.LogicalPredicate.Companion.registerLogicFunctions
-import org.imdc.extensions.common.expressions.RandomUUIDFunction
+import org.imdc.extensions.common.expressions.UUID4Function
 
 @Suppress("unused")
 class ClientHook : AbstractClientModuleHook() {
@@ -52,9 +52,9 @@ class ClientHook : AbstractClientModuleHook() {
             )
             registerLogicFunctions()
             addFunction(
-                RandomUUIDFunction.NAME,
-                RandomUUIDFunction.CATEGORY,
-                RandomUUIDFunction(),
+                UUID4Function.NAME,
+                UUID4Function.CATEGORY,
+                UUID4Function(),
             )
         }
     }

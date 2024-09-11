@@ -6,7 +6,7 @@ import com.inductiveautomation.ignition.common.model.values.BasicQualifiedValue
 import com.inductiveautomation.ignition.common.model.values.QualifiedValue
 import java.util.UUID
 
-class RandomUUIDFunction : AbstractFunction() {
+class UUID4Function : AbstractFunction() {
     override fun validateNumArgs(num: Int): Boolean = num == 0
     override fun execute(expressions: Array<out Expression>): QualifiedValue {
         return BasicQualifiedValue(UUID.randomUUID())
@@ -17,7 +17,7 @@ class RandomUUIDFunction : AbstractFunction() {
     override fun getType(): Class<*> = UUID::class.java
 
     companion object {
-        const val NAME = "randomUUID"
+        const val NAME = "uuid4"
         const val CATEGORY = "Advanced"
     }
 }

@@ -1,11 +1,14 @@
 package org.imdc.extensions.common
 
 import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.beInstanceOf
 import io.mockk.mockk
 import org.python.core.Py
 import org.python.core.PyDictionary
 import org.python.core.PyList
+import java.util.UUID
 
 @Suppress("PyUnresolvedReferences", "PyInterpreter")
 class UtilitiesExtensionsTests : JythonTest(
@@ -46,9 +49,12 @@ class UtilitiesExtensionsTests : JythonTest(
                 }
             }
         }
-        context("Random UUID tests") {
+        context("UUID4 tests") {
+            test("Instance of UUID") {
+                eval<UUID?>("utils.getUUID4()") should beInstanceOf<UUID>()
+            }
             test("Unique results") {
-                eval<Boolean?>("utils.randomUUID() == utils.randomUUID()") shouldBe false
+                eval<Boolean?>("utils.getUUID4() == utils.getUUID4()") shouldBe false
             }
         }
     }

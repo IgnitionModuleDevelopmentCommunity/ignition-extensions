@@ -132,7 +132,7 @@ public class UtilitiesExtensions {
     }
 
     @ScriptFunction(docBundlePrefix = "UtilitiesExtensions")
-    public UUID randomUUID() {
+    public UUID getUUID4() {
         return UUID.randomUUID();
     }
 }
