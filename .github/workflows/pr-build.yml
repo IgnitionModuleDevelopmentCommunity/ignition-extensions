@@ -13,7 +13,7 @@ jobs:
       - name: Build
         run: ./gradlew build
       - name: Upload Unsigned Module
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v5
         with:
           name: ignition-extensions-unsigned
           path: build/Ignition-Extensions.unsigned.modl
