@@ -7,6 +7,8 @@ plugins {
     id("imdc.build.base")
     alias(libs.plugins.kotlin)
     `java-library`
+
+    alias(libs.plugins.spotless)
 }
 
 version = project.parent?.version ?: "0.0.0-SNAPSHOT"
@@ -22,5 +24,23 @@ configure<KotlinProjectExtension> {
 configure<JavaPluginExtension> {
     toolchain {
         languageVersion = jvmLanguageVersion
+    }
+}
+
+spotless {
+    format("misc") {
+        target("*.gradle", ".gitattributes", ".gitignore")
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+    java {
+        palantirJavaFormat()
+        formatAnnotations()
+    }
+    kotlin {
+        ktlint()
+    }
+    kotlinGradle {
+        ktlint()
     }
 }

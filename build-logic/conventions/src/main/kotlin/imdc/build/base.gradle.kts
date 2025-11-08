@@ -1,8 +1,11 @@
 package imdc.build
 
+
 group = "org.imdc.extensions"
 
-plugins { base }
+plugins {
+    base
+}
 
 repositories {
     mavenCentral()
