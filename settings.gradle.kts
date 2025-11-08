@@ -9,6 +9,7 @@ pluginManagement {
 
 rootProject.name = "ignition-extensions"
 
+includeBuild("build-logic")
 include(
     "common",
     "gateway",

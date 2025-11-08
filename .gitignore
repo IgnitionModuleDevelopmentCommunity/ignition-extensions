@@ -3,3 +3,4 @@
 .gradle/
 
 local.properties
+/common/.jython_cache
