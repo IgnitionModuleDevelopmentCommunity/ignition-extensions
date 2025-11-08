@@ -8,6 +8,11 @@ import com.inductiveautomation.ignition.common.sqltags.history.AggregationMode
 import com.inductiveautomation.ignition.common.sqltags.history.BasicTagHistoryQueryParams
 import com.inductiveautomation.ignition.common.sqltags.history.ReturnFormat
 import com.inductiveautomation.ignition.common.util.LoggerEx
+import com.inductiveautomation.ignition.gateway.dataroutes.AccessControlStrategy
+import com.inductiveautomation.ignition.gateway.dataroutes.PermissionType
+import com.inductiveautomation.ignition.gateway.dataroutes.PermissionType.getStrategies
+import com.inductiveautomation.ignition.gateway.dataroutes.RequestContext
+import com.inductiveautomation.ignition.gateway.dataroutes.RouteAccess
 import com.inductiveautomation.ignition.gateway.model.GatewayContext
 import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
@@ -27,7 +32,15 @@ class HistoryServlet : HttpServlet() {
         context = servletContext.getAttribute(GatewayContext.SERVLET_CONTEXT_KEY) as GatewayContext
     }
 
+    private val strategies = PermissionType.getStrategies(PermissionType.READ)
+
     override fun doGet(req: HttpServletRequest, resp: HttpServletResponse) {
+        val requestContext = RequestContext(req, req.servletPath)
+        val routeAccess = AccessControlStrategy.or(strategies).canAccess(requestContext)
+        if (routeAccess != RouteAccess.GRANTED) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN)
+            return
+        }
         resp.contentType = ContentType.APPLICATION_JSON.toString()
         resp.writer.use { writer ->
             val historyQuery: BasicTagHistoryQueryParams =
