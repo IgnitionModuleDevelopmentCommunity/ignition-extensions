@@ -28,6 +28,7 @@ configure<JavaPluginExtension> {
 }
 
 spotless {
+    ratchetFrom("HEAD")
     format("misc") {
         target("*.gradle", ".gitattributes", ".gitignore")
         trimTrailingWhitespace()
