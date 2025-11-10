@@ -2,6 +2,7 @@ package org.imdc.extensions.common
 
 import com.inductiveautomation.ignition.common.script.hints.PropertiesFileDocProvider
 import com.inductiveautomation.ignition.common.script.hints.ScriptFunctionDocProvider
+import com.inductiveautomation.ignition.common.script.typing.CompletionDescriptor
 import java.lang.reflect.Method
 
 private val propertiesFileDocProvider = PropertiesFileDocProvider()
@@ -13,20 +14,23 @@ private val WARNING = """
 """.trimIndent()
 
 object ExtensionDocProvider : ScriptFunctionDocProvider by propertiesFileDocProvider {
-    override fun getMethodDescription(path: String, method: Method): String {
-        val methodDescription: String? = propertiesFileDocProvider.getMethodDescription(path, method)
+    override fun getMethodDescriptor(path: String, method: Method): CompletionDescriptor.Method? {
+        val base = propertiesFileDocProvider.getMethodDescriptor(path, method)
+
         val unsafeAnnotation = method.getAnnotation<UnsafeExtension>()
 
-        return buildString {
-            if (unsafeAnnotation != null) {
+        return if (unsafeAnnotation != null) {
+            base?.copy(description = buildString {
                 append("<html><b>")
                 append(WARNING)
                 if (unsafeAnnotation.note.isNotEmpty()) {
                     append("<br>").append(unsafeAnnotation.note)
                 }
                 append("</b><br><br>")
-            }
-            append(methodDescription.orEmpty())
+                append(base.description.orEmpty())
+            })
+        } else {
+            base
         }
     }
 }

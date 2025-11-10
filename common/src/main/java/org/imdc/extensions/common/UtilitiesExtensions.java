@@ -21,7 +21,7 @@ import com.inductiveautomation.ignition.common.model.values.QualifiedValue;
 import com.inductiveautomation.ignition.common.script.PyArgParser;
 import com.inductiveautomation.ignition.common.script.ScriptContext;
 import com.inductiveautomation.ignition.common.script.builtin.KeywordArgs;
-import com.inductiveautomation.ignition.common.script.hints.ScriptFunction;
+import com.inductiveautomation.ignition.common.script.hints.JythonElement;
 import com.inductiveautomation.ignition.common.tags.model.TagPath;
 import com.inductiveautomation.ignition.common.tags.paths.parser.TagPathParser;
 import org.apache.commons.lang3.tuple.Pair;
@@ -41,13 +41,13 @@ public class UtilitiesExtensions {
         this.context = context;
     }
 
-    @ScriptFunction(docBundlePrefix = "UtilitiesExtensions")
+    @JythonElement(docBundlePrefix = "UtilitiesExtensions")
     @UnsafeExtension
     public CommonContext getContext() {
         return context;
     }
 
-    @ScriptFunction(docBundlePrefix = "UtilitiesExtensions")
+    @JythonElement(docBundlePrefix = "UtilitiesExtensions")
     @KeywordArgs(names = {"object"}, types = {PyObject.class})
     public PyObject deepCopy(PyObject[] args, String[] keywords) {
         PyArgParser parsedArgs = PyArgParser.parseArgs(args, keywords, this.getClass(), "deepCopy");
@@ -76,7 +76,7 @@ public class UtilitiesExtensions {
         }
     }
 
-    @ScriptFunction(docBundlePrefix = "UtilitiesExtensions")
+    @JythonElement(docBundlePrefix = "UtilitiesExtensions")
     @KeywordArgs(names = {"expression"}, types = {String.class})
     public QualifiedValue evalExpression(PyObject[] args, String[] keywords) throws Exception {
         if (args.length == 0) {
@@ -116,7 +116,7 @@ public class UtilitiesExtensions {
                 return new ConstantExpression(keywords.get(reference));
             } else {
                 try {
-                    TagPath path = TagPathParser.parse(ScriptContext.defaultTagProvider(), reference);
+                    TagPath path = TagPathParser.parse(ScriptContext.getDefaultTagProvider().orElseThrow(), reference);
                     var tagValues = context.getTagManager().readAsync(List.of(path)).get(30, TimeUnit.SECONDS);
                     return new ConstantExpression(tagValues.get(0).getValue());
                 } catch (IOException | InterruptedException | ExecutionException | TimeoutException e) {
@@ -131,7 +131,7 @@ public class UtilitiesExtensions {
         }
     }
 
-    @ScriptFunction(docBundlePrefix = "UtilitiesExtensions")
+    @JythonElement(docBundlePrefix = "UtilitiesExtensions")
     public UUID getUUID4() {
         return UUID.randomUUID();
     }

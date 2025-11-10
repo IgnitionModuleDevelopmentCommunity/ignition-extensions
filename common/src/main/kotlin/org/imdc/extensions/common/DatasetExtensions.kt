@@ -6,7 +6,7 @@ import com.inductiveautomation.ignition.common.TypeUtilities
 import com.inductiveautomation.ignition.common.script.PyArgParser
 import com.inductiveautomation.ignition.common.script.builtin.KeywordArgs
 import com.inductiveautomation.ignition.common.script.hints.ScriptArg
-import com.inductiveautomation.ignition.common.script.hints.ScriptFunction
+import com.inductiveautomation.ignition.common.script.hints.JythonElement
 import com.inductiveautomation.ignition.common.util.DatasetBuilder
 import com.inductiveautomation.ignition.common.xmlserialization.ClassNameResolver
 import org.apache.poi.ss.usermodel.Cell
@@ -35,7 +35,7 @@ import kotlin.streams.asSequence
 
 object DatasetExtensions {
     @Suppress("unused")
-    @ScriptFunction(docBundlePrefix = "DatasetExtensions")
+    @JythonElement(docBundlePrefix = "DatasetExtensions")
     @KeywordArgs(
         names = ["dataset", "mapper", "preserveColumnTypes"],
         types = [Dataset::class, PyFunction::class, Boolean::class],
@@ -74,7 +74,7 @@ object DatasetExtensions {
     }
 
     @Suppress("unused")
-    @ScriptFunction(docBundlePrefix = "DatasetExtensions")
+    @JythonElement(docBundlePrefix = "DatasetExtensions")
     @KeywordArgs(
         names = ["dataset", "filter"],
         types = [Dataset::class, PyFunction::class],
@@ -122,7 +122,7 @@ object DatasetExtensions {
     }
 
     @Suppress("unused")
-    @ScriptFunction(docBundlePrefix = "DatasetExtensions")
+    @JythonElement(docBundlePrefix = "DatasetExtensions")
     @KeywordArgs(
         names = ["dataset", "output", "includeTypes"],
         types = [Dataset::class, Appendable::class, Boolean::class],
@@ -221,7 +221,7 @@ object DatasetExtensions {
     }
 
     @Suppress("unused")
-    @ScriptFunction(docBundlePrefix = "DatasetExtensions")
+    @JythonElement(docBundlePrefix = "DatasetExtensions")
     @KeywordArgs(
         names = ["dataset", "filterNull"],
         types = [Dataset::class, Boolean::class],
@@ -253,7 +253,7 @@ object DatasetExtensions {
     }
 
     @Suppress("unused")
-    @ScriptFunction(docBundlePrefix = "DatasetExtensions")
+    @JythonElement(docBundlePrefix = "DatasetExtensions")
     @KeywordArgs(
         names = ["input", "headerRow", "sheetNumber", "firstRow", "lastRow", "firstColumn", "lastColumn", "typeOverrides"],
         types = [ByteArray::class, Int::class, Int::class, Int::class, Int::class, Int::class, Int::class, PyStringMap::class],
@@ -412,7 +412,7 @@ object DatasetExtensions {
     }
 
     @Suppress("unused")
-    @ScriptFunction(docBundlePrefix = "DatasetExtensions")
+    @JythonElement(docBundlePrefix = "DatasetExtensions")
     fun equals(
         @ScriptArg("dataset1") ds1: Dataset,
         @ScriptArg("dataset2") ds2: Dataset,
@@ -421,7 +421,7 @@ object DatasetExtensions {
     }
 
     @Suppress("unused")
-    @ScriptFunction(docBundlePrefix = "DatasetExtensions")
+    @JythonElement(docBundlePrefix = "DatasetExtensions")
     fun valuesEqual(
         @ScriptArg("dataset1") ds1: Dataset,
         @ScriptArg("dataset2") ds2: Dataset,
@@ -440,7 +440,7 @@ object DatasetExtensions {
     }
 
     @Suppress("unused")
-    @ScriptFunction(docBundlePrefix = "DatasetExtensions")
+    @JythonElement(docBundlePrefix = "DatasetExtensions")
     @JvmOverloads
     fun columnsEqual(
         @ScriptArg("dataset1") ds1: Dataset,
@@ -473,7 +473,7 @@ object DatasetExtensions {
         }
     }
 
-    @ScriptFunction(docBundlePrefix = "DatasetExtensions")
+    @JythonElement(docBundlePrefix = "DatasetExtensions")
     @KeywordArgs(
         names = ["**columns"],
         types = [KeywordArgs::class],

@@ -1,10 +1,6 @@
 plugins {
-    `java-library`
-    kotlin("jvm")
-}
-
-kotlin {
-    jvmToolchain(libs.versions.java.map(String::toInt).get())
+    id("imdc.build.ignition-module-scope")
+    id("imdc.test.junit-tests")
 }
 
 dependencies {
@@ -12,11 +8,4 @@ dependencies {
     testImplementation(libs.ignition.common)
     testImplementation(libs.bundles.kotest)
     testImplementation(libs.mockk)
-}
-
-tasks {
-    withType<Test> {
-        useJUnitPlatform()
-        jvmArgs = listOf("--add-opens", "java.base/java.io=ALL-UNNAMED")
-    }
 }

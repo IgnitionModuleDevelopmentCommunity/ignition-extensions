@@ -1,18 +1,5 @@
 plugins {
-    alias(libs.plugins.kotlin)
     alias(libs.plugins.modl)
-}
-
-allprojects {
-    repositories {
-        mavenCentral()
-        maven("https://nexus.inductiveautomation.com/repository/public")
-    }
-}
-
-subprojects {
-    // cascade version, which will be set at command line in CI, down to subprojects
-    version = rootProject.version
 }
 
 ignitionModule {

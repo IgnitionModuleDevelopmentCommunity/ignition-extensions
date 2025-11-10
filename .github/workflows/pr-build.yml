@@ -8,12 +8,12 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: 11
+          java-version: 17
           cache: 'gradle'
       - name: Build
         run: ./gradlew build
       - name: Upload Unsigned Module
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v5
         with:
           name: ignition-extensions-unsigned
           path: build/Ignition-Extensions.unsigned.modl

@@ -1,7 +1,8 @@
 package org.imdc.extensions.common
 
-import com.inductiveautomation.ignition.common.project.Project
+import com.inductiveautomation.ignition.common.resourcecollection.ResourceCollection
+
 
 interface ProjectExtensions {
-    fun getProject(): Project
+    fun getProject(): ResourceCollection
 }

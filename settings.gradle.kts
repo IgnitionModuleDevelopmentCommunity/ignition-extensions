@@ -9,9 +9,14 @@ pluginManagement {
 
 rootProject.name = "ignition-extensions"
 
+includeBuild("build-logic")
 include(
     "common",
     "gateway",
     "designer",
     "client",
 )
+
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}

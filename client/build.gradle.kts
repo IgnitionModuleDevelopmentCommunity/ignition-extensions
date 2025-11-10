@@ -1,10 +1,5 @@
 plugins {
-    `java-library`
-    kotlin("jvm")
-}
-
-kotlin {
-    jvmToolchain(libs.versions.java.map(String::toInt).get())
+    id("imdc.build.ignition-module-scope")
 }
 
 dependencies {
