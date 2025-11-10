@@ -8,6 +8,12 @@
     "com.inductiveautomation.ignitionsdk:client-api",
     "com.inductiveautomation.ignitionsdk:designer-api",
     "com.inductiveautomation.ignitionsdk:gateway-api",
-    "com.inductiveautomation.ignitionsdk:ignition-common"
+    "com.inductiveautomation.ignitionsdk:ignition-common",
+    "io.mockk:mockk",
+    "org.jetbrains.kotlin.jvm",
+    "io.kotest:kotest-framework-datatest",
+    "io.kotest:kotest-property",
+    "io.kotest:kotest-assertions-core",
+    "io.kotest:kotest-runner-junit5"
   ]
 }
