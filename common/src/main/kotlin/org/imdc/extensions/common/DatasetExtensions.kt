@@ -50,7 +50,8 @@ object DatasetExtensions {
         )
         val dataset = parsedArgs.requirePyObject("dataset").toJava<Dataset>()
         val mapper = parsedArgs.requirePyObject("mapper")
-        val preserveColumnTypes = parsedArgs.getBoolean("preserveColumnTypes").filter { it }.isPresent
+        val preserveColumnTypes =
+            parsedArgs.getBoolean("preserveColumnTypes").filter { it }.isPresent
 
         val columnTypes = if (preserveColumnTypes) {
             dataset.columnTypes
@@ -58,7 +59,8 @@ object DatasetExtensions {
             List(dataset.columnCount) { Any::class.java }
         }
 
-        val builder = DatasetBuilder.newBuilder().colNames(dataset.columnNames).colTypes(columnTypes)
+        val builder =
+            DatasetBuilder.newBuilder().colNames(dataset.columnNames).colTypes(columnTypes)
 
         for (row in dataset.rowIndices) {
             val columnValues = Array<PyObject>(dataset.columnCount) { col ->
@@ -144,7 +146,11 @@ object DatasetExtensions {
         return printDataset(appendable, dataset, includeTypes)
     }
 
-    internal fun printDataset(appendable: Appendable, dataset: Dataset, includeTypes: Boolean = false) {
+    internal fun printDataset(
+        appendable: Appendable,
+        dataset: Dataset,
+        includeTypes: Boolean = false,
+    ) {
         val typeNames = List<String>(dataset.columnCount) { column ->
             if (includeTypes) {
                 dataset.getColumnType(column).simpleName
@@ -255,6 +261,33 @@ object DatasetExtensions {
     @Suppress("unused")
     @JythonElement(docBundlePrefix = "DatasetExtensions")
     @KeywordArgs(
+        names = ["dataset", "table"],
+        types = [Dataset::class, String::class],
+    )
+    fun insertDataset(args: Array<PyObject>, keywords: Array<String>): List<Any> {
+        val parserArgs = PyArgParser.parseArgs(
+            args,
+            keywords,
+            arrayOf("dataset", "table"),
+            Array(2) { Any::class.java },
+            "insertDataset",
+        )
+        val dataset = parserArgs.requirePyObject("dataset").toJava<Dataset>()
+        val table = parserArgs.requireString("table")
+
+        val columnNames = dataset.columnNames.joinToString(", ")
+        val valuePlaceholders = dataset.columnIndices.joinToString { "?" }
+        val insertString = "INSERT INTO $table ($columnNames) VALUES " + dataset.rowIndices.joinToString { "($valuePlaceholders)" }
+        val valueList = dataset.rowIndices.flatMap { row ->
+            dataset.columnIndices.map { col -> dataset[row, col] }
+        }
+
+        return listOf(insertString, valueList)
+    }
+
+    @Suppress("unused")
+    @ScriptFunction(docBundlePrefix = "DatasetExtensions")
+    @KeywordArgs(
         names = ["input", "headerRow", "sheetNumber", "firstRow", "lastRow", "firstColumn", "lastColumn", "typeOverrides"],
         types = [ByteArray::class, Int::class, Int::class, Int::class, Int::class, Int::class, Int::class, PyStringMap::class],
     )
@@ -293,7 +326,8 @@ object DatasetExtensions {
             val sheet = workbook.getSheetAt(sheetNumber)
 
             val headerRow = parsedArgs.getInteger("headerRow").orElse(-1)
-            val firstRow = parsedArgs.getInteger("firstRow").orElseGet { max(sheet.firstRowNum, headerRow + 1) }
+            val firstRow = parsedArgs.getInteger("firstRow")
+                .orElseGet { max(sheet.firstRowNum, headerRow + 1) }
             val lastRow = parsedArgs.getInteger("lastRow").orElseGet { sheet.lastRowNum }
 
             val dataRange = firstRow..lastRow
@@ -309,7 +343,8 @@ object DatasetExtensions {
             val firstColumn =
                 parsedArgs.getInteger("firstColumn").orElseGet { columnRow.firstCellNum.toInt() }
             val lastColumn =
-                parsedArgs.getInteger("lastColumn").map { it + 1 }.orElseGet { columnRow.lastCellNum.toInt() }
+                parsedArgs.getInteger("lastColumn").map { it + 1 }
+                    .orElseGet { columnRow.lastCellNum.toInt() }
             if (firstColumn >= lastColumn) {
                 throw Py.ValueError("firstColumn ($firstColumn) must be less than lastColumn ($lastColumn)")
             }
