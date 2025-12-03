@@ -1,6 +1,6 @@
 services:
   gateway:
-    image: inductiveautomation/ignition:8.3.0
+    image: inductiveautomation/ignition:8.3.2
     ports:
       - 18088:8088
       - 18000:8000
